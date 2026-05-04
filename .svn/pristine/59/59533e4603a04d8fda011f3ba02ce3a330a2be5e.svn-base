@@ -1,0 +1,46 @@
+package edu.rice.comp504.model.strategy.interactStrategy;
+
+import edu.rice.comp504.model.paint.Ball;
+
+/**
+ * This wrapper allows the interact strategy within it to be used one more time, after which the ball itself will be
+ * minimized.
+ */
+public class PersistenceLimitWrapperInteractStrategy extends IInteractWrapperStrategy {
+
+    boolean used_wrapper;
+
+    /**
+     * Constructor
+     */
+    public PersistenceLimitWrapperInteractStrategy(IInteractStrategy wrapped_strategy) {
+        this.wrapped_strategy = wrapped_strategy;
+        this.used_wrapper = false;
+        System.out.println("new persistence wrapper");
+    }
+
+    /**
+     * Get the ball name
+     * @return ball name
+     */
+    public String getName() {
+        return "persistencelimit_interact "+wrapped_strategy.getName();
+    }
+
+    /**
+     * If the wrapper has not been used, perform the interaction for the strategy(ies) inside the wrapper.
+     * @param src  The src ball will impose the interaction strategy on the dest ball.
+     * @param dest The dest ball behavior will be affected by the src ball interaction strategy
+     */
+    public void interact(Ball src, Ball dest) {
+        if (!used_wrapper) {
+            System.out.println(wrapped_strategy.getName());
+            this.wrapped_strategy.interact(src, dest);
+            used_wrapper = true;
+            src.setRadius(1);
+            if(this.wrapped_strategy.getName().contains("smasher") ||
+                this.wrapped_strategy.getName().contains("splitter")) dest.setRadius(1);
+        }
+    }
+}
+

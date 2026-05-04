@@ -1,0 +1,59 @@
+package edu.rice.comp504.model.strategy.interactStrategy;
+
+import java.util.LinkedList;
+
+/**
+ * Strategies are generated in more than one place. This factory saves us from repeating the code.
+ */
+public class InteractStrategyFactory {
+
+    private static InteractStrategyFactory my_int_factory;
+
+
+    /**
+     * The constructor
+      */
+    private InteractStrategyFactory() { }
+
+    /**
+     * The factory is a singleton.
+     * @return the singleton instance of the factory
+     */
+    public static InteractStrategyFactory makeFactory() {
+        if(my_int_factory == null) {
+          my_int_factory = new InteractStrategyFactory();
+        }
+        return my_int_factory;
+    }
+
+    /**
+     * Create a new base strategy or retrieve a singleton; wrap it up as specified in the word string.
+     * @param word
+     * @return the prepared strategy.
+     */
+    public IInteractStrategy makeStrategy(String word) {
+
+        IInteractStrategy my_strategy;
+        LinkedList<IInteractStrategy> new_strategies = new LinkedList<>();
+
+        if(word.contains("billiard")) new_strategies.add(new BilliardStrategy());
+        if(word.contains("smasher")) new_strategies.add(new SmasherStrategy());
+        if(word.contains("splitter")) new_strategies.add(new SplitterStrategy());
+        if(word.contains("blob")) new_strategies.add(new BlobStrategy());
+        if(word.contains("swapper")) new_strategies.add(SwapperStrategy.makeStrategy());
+        if(word.contains("nullifier")) new_strategies.add(NullifierStrategy.makeStrategy());
+        if(word.contains("leader")) new_strategies.add(LeaderStrategy.makeStrategy());
+        if(word.contains("null ")) new_strategies.add(NullInteractStrategy.makeStrategy());
+        if(new_strategies.size() == 0) new_strategies.add(NullInteractStrategy.makeStrategy());
+
+
+        if(new_strategies.size() > 1) my_strategy = new CompositeInteractStrategy(new_strategies);
+        else my_strategy = new_strategies.get(0);
+
+        if(word.contains("switcher")) my_strategy = new SwitcherInteractStrategy(my_strategy);
+        if(word.contains("persistencelimit_interact")) my_strategy = new PersistenceLimitWrapperInteractStrategy(my_strategy);
+        if(word.contains("override_interact")) my_strategy = new OverrideInteractStrategy(my_strategy);
+
+        return my_strategy;
+    }
+}

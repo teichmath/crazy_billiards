@@ -1,0 +1,47 @@
+package edu.rice.comp504.model.strategy.updateStrategy;
+import edu.rice.comp504.model.paint.Ball;
+
+import java.awt.*;
+
+/**
+ * Wrapper for use with the Blob interact strategy. Balls eaten by a blob have their update strategies wrapped in this.
+ */
+public class EatenWrapperUpdateStrategy extends IUpdateWrapperStrategy {
+
+    private Ball host_blob;
+    private Point relative_position;
+
+    /**
+     * The constructor
+      * @param wrapped_strategy
+     * @param host
+     * @param rp
+     */
+    public EatenWrapperUpdateStrategy(IUpdateStrategy wrapped_strategy, Ball host, Point rp) {
+        this.wrapped_strategy = wrapped_strategy;
+        this.host_blob = host;
+        this.relative_position = rp;
+    }
+
+    /**
+     * Get the interaction strategy name.
+     * @return The interaction strategy name.
+     */
+    public String getName(){return "eatenwrapper_update "+wrapped_strategy.getName(); }
+
+    /**
+     * Updates the eaten ball by directly setting its location using the host blob's location and a position for this ball
+     * relative to the host blob.
+     * @param context The ball to update.
+     */
+    public void updateState(Ball context) {
+
+        System.out.println("host blob "+this.host_blob+" at "+this.host_blob.getLocation().getX()+", "+this.host_blob.getLocation().getY()+";  " +
+                "this relative position at "+this.relative_position.getX()+", "+this.relative_position.getY());
+        if(this.host_blob.getRadius() <= 2) context.setRadius(0);
+
+        context.setLocation(new Point((int)(this.host_blob.getLocation().getX() + this.relative_position.getX()),
+                (int)(this.host_blob.getLocation().getY() + this.relative_position.getY())));
+    }
+
+}

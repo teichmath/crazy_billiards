@@ -1,0 +1,53 @@
+package edu.rice.comp504.controller;
+
+import edu.rice.comp504.model.DispatchAdapter;
+
+import com.google.gson.Gson;
+import edu.rice.comp504.model.paint.Ball;
+
+import java.awt.*;
+
+import static spark.Spark.*;
+
+/**
+ * The controller that creates the dispatch adapter and defines the REST end points
+ */
+public class BallWorldController {
+
+    public static void main(String[] args) {
+        staticFiles.location("/public");
+
+        Gson gson = new Gson();
+        DispatchAdapter dis = new DispatchAdapter();
+
+
+        post("/load", (request, response) -> {
+            System.out.println("trying to load");
+            Ball b = dis.loadBall(request.body());
+            return gson.toJson(b);
+        });
+
+        post("/switch", (request, response) -> {
+            dis.switchStrategy(request.body());
+            return gson.toJson(dis);
+        });
+
+        get("/update", (request, response) -> {
+            dis.updateBallWorld();
+            return gson.toJson(dis);
+        });
+
+        get("/clear", (request, response) -> {
+            dis.deleteObservers();
+            return gson.toJson(dis);
+        });
+
+        get("/canvas/:width/:height", (request, response) -> {
+            int width = Integer.valueOf(request.params(":width"));
+            int height = Integer.valueOf(request.params(":height"));
+            dis.setCanvasDims(new Point(width, height));
+            return gson.toJson(dis);
+        });
+
+    }
+}

@@ -1,0 +1,190 @@
+package edu.rice.comp504.model.cmd;
+
+import edu.rice.comp504.model.DispatchAdapter;
+import edu.rice.comp504.model.paint.Ball;
+import edu.rice.comp504.model.strategy.interactStrategy.*;
+import edu.rice.comp504.model.strategy.updateStrategy.FollowerWrapperUpdateStrategy;
+
+import java.awt.*;
+import java.util.Arrays;
+import java.util.LinkedList;
+
+/**
+ * The UpdateCommand orchestrates interactions between balls and walls and between balls and balls, and the updating of
+ * ball locations due to update strategies. See readme for details.
+ */
+public class UpdateCommand implements IBallCmd {
+
+    private Point dims;
+    private LinkedList<Ball> ball_group = new LinkedList<>();
+    private boolean update_complete;
+    private DispatchAdapter dad;
+    private int group_size;
+    private InteractStrategyUnwrapper my_int_unwrapper;
+
+
+    /**
+     * The constructor
+     *
+     * @param dims The dispatch adapter
+     */
+    public UpdateCommand(Point dims, DispatchAdapter dad, int group_size) {
+        this.dims = dims;
+        this.dad = dad;
+        this.update_complete = false;
+        this.group_size = group_size;
+        this.my_int_unwrapper = InteractStrategyUnwrapper.makeUnwrapper();
+    }
+
+    /**
+     * Master method for collision and updating logic. Establishes new placement for context ball.
+     *
+     * @param context The paintobj.
+     */
+    public void execute(Ball context) {
+
+        context.wallCollision(dims);
+        if (!context.getInteractStrategy().getName().contains("override_interact")) {
+otherloop:  for (Ball other : ball_group) {
+                if (!other.getInteractStrategy().getName().contains("override_interact")) {
+
+                    for(int i = 0; i < 2; i++) {
+                        Ball a = context;
+                        Ball b = other;
+                        if(i == 1) {
+                            a = other;
+                            b = context;
+                        }
+                        if(a.getUpdateStrategy().getName().startsWith("follower")) {
+//                            if(b.getUpdateStrategy().getName().startsWith("follower")) continue otherloop;
+                            FollowerWrapperUpdateStrategy fwstrat = (FollowerWrapperUpdateStrategy) a.getUpdateStrategy();
+                            if(fwstrat.getLeader() == b) continue otherloop;
+                        }
+                    }
+
+                    Point record_context_vel = context.getVelocity();
+                    Point record_other_vel = other.getVelocity();
+
+                    if (context.ballCollision(other)) {
+                        other.ballCollision(context);
+
+                        if (context.getInteractStrategy().getName().contains("billiard"))
+                            context.setVelocity(record_context_vel);
+                        if (other.getInteractStrategy().getName().contains("billiard"))
+                            other.setVelocity(record_other_vel);
+
+                        Ball a = context;
+                        Ball b = other;
+                        if(other.getInteractStrategy().getName().contains("swapper") && !context.getInteractStrategy().getName().contains("swapper")) {
+                            a = (b == context) ? context : other;
+                            b = (a == context) ? other : context;
+                        }
+                        if(other.getInteractStrategy().getName().contains("blob") && !context.getInteractStrategy().getName().contains("blob")) {
+                            a = (b == context) ? context : other;
+                            b = (a == context) ? other : context;
+                        }
+                        a.getInteractStrategy().interact(a, b);
+                        b.getInteractStrategy().interact(b, a);
+
+                        for (int i = 0; i < 2; i++) {
+                            if (i == 0) b = context;
+                            else b = other;
+                            if (b.getInteractStrategy().getName().contains("smasher")) {
+                                SmasherStrategy smstr = (SmasherStrategy)
+                                        my_int_unwrapper.getBaseInteractStrategy(b, "smasher");
+                                for (Ball ball : smstr.getResultingBalls()) dad.addObserver(ball);
+                                smstr.clearResultingBalls();
+
+                            } else if (b.getInteractStrategy().getName().contains("splitter")) {
+                                SplitterStrategy spstr = (SplitterStrategy)
+                                        my_int_unwrapper.getBaseInteractStrategy(b, "splitter");
+                                for (Ball ball : spstr.getResultingBalls()) dad.addObserver(ball);
+                                spstr.clearResultingBalls();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        ball_group.add(context);
+
+
+        if (ball_group.size() == group_size && !update_complete) {
+
+//the update strategies perform the actual placements of the balls (among other effects);
+// no balls have been moved until this moment.
+
+            boolean[] updated = new boolean[ball_group.size()];
+            Arrays.fill(updated, false);
+            for(int i = 0; i < ball_group.size(); i++) {
+                Ball ball = ball_group.get(i);
+                if(ball.getInteractStrategy().getName().contains("blob")) {
+                    if (ball.getInteractStrategy().getName().contains("billiard")) {
+                        BilliardStrategy bstr = (BilliardStrategy)
+                                my_int_unwrapper.getBaseInteractStrategy(ball, "billiard");
+                        ball.setVelocity(new Point((int) (ball.getVelocity().getX() + bstr.getForce().getX()),
+                                (int) (ball.getVelocity().getY() + bstr.getForce().getY())));
+                        bstr.zeroForce();
+                    }
+                    ball.getUpdateStrategy().updateState(ball);
+                    updated[i] = true;
+                }
+            }
+
+            for (int i = 0; i < ball_group.size(); i++) {
+                if(!updated[i]) {
+                    Ball ball = ball_group.get(i);
+                    if (ball.getInteractStrategy().getName().contains("billiard")) {
+                        BilliardStrategy bstr = (BilliardStrategy)
+                                my_int_unwrapper.getBaseInteractStrategy(ball, "billiard");
+                        ball.setVelocity(new Point((int) (ball.getVelocity().getX() + bstr.getForce().getX()),
+                                (int) (ball.getVelocity().getY() + bstr.getForce().getY())));
+                        bstr.zeroForce();
+                    }
+                    ball.getUpdateStrategy().updateState(ball);
+                }
+            }
+
+            //adjust overlapping balls
+
+            for (int i = 0; i < ball_group.size() - 1; i++) {
+                Ball bi = ball_group.get(i);
+                if(!bi.getInteractStrategy().getName().contains("override")) {
+                    for (int j = i + 1; j < ball_group.size(); j++) {
+                        Ball bj = ball_group.get(j);
+                        if (!bj.getInteractStrategy().getName().contains("override")) {
+                            double distance = Math.sqrt(Math.pow(bi.getLocation().getX() - bj.getLocation().getX(), 2)
+                                    + Math.pow(bi.getLocation().getY() - bj.getLocation().getY(), 2));
+                            if (distance <= bi.getRadius() + bj.getRadius()) {
+                                double next_distance = Math.sqrt(Math.pow(bi.getLocation().getX()
+                                                + bi.getVelocity().getX() - bj.getLocation().getX() - bj.getVelocity().getX()
+                                        , 2) + Math.pow(bi.getLocation().getY() + bi.getVelocity().getY()
+                                        - bj.getLocation().getY() - bj.getVelocity().getY(), 2));
+                                if (next_distance <= bi.getRadius() + bj.getRadius()) {
+                                    double displacement_ratio = (bi.getRadius() + bj.getRadius() - distance) / distance;
+                                    bi.nextLocation((int) ((bi.getLocation().getX() - bj.getLocation().getX())
+                                            * displacement_ratio), (int) ((bi.getLocation().getY()
+                                            - bj.getLocation().getY()) * displacement_ratio));
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+
+            //final wall adjustments
+            for (int i = 0; i < ball_group.size(); i++) {
+                Ball bi = ball_group.get(i);
+                boolean outcome = bi.wallCollision(dims);
+                if(outcome) System.out.println("ball "+i+" hits! loc: "+bi.getLocation().getX()+", "+bi.getLocation().getY());
+            }
+
+
+            update_complete = true;
+        }
+    }
+}
+
+

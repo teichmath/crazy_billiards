@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>edu.rice.comp504.model</OriginalElement>
+  <nodes>
+    <node x="31.01333333333332" y="158.0">edu.rice.comp504.model.paint</node>
+    <node x="0.0" y="232.0">edu.rice.comp504.model.strategy</node>
+    <node x="14.213333333333324" y="0.0">edu.rice.comp504.model.DispatchAdapter</node>
+    <node x="0.0" y="79.0">edu.rice.comp504.model.cmd</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="edu.rice.comp504.model.cmd" target="edu.rice.comp504.model.paint">
+      <point x="37.66666666666666" y="14.5" />
+      <point x="94.16666666666666" y="133.0" />
+      <point x="90.01333333333332" y="133.0" />
+      <point x="0.0" y="-14.5" />
+    </edge>
+    <edge source="edu.rice.comp504.model.cmd" target="edu.rice.comp504.model.DispatchAdapter">
+      <point x="0.0" y="-14.5" />
+      <point x="56.5" y="54.0" />
+      <point x="59.51333333333333" y="54.0" />
+      <point x="-30.199999999999996" y="14.5" />
+    </edge>
+    <edge source="edu.rice.comp504.model.DispatchAdapter" target="edu.rice.comp504.model.paint">
+      <point x="60.400000000000006" y="14.5" />
+      <point x="150.11333333333334" y="54.0" />
+      <point x="134.5" y="54.0" />
+      <point x="134.5" y="133.0" />
+      <point x="137.2133333333333" y="133.0" />
+      <point x="47.19999999999999" y="-14.5" />
+    </edge>
+    <edge source="edu.rice.comp504.model.paint" target="edu.rice.comp504.model.cmd">
+      <point x="-47.19999999999999" y="-14.5" />
+      <point x="42.81333333333333" y="133.0" />
+      <point x="18.833333333333343" y="133.0" />
+      <point x="-37.66666666666666" y="14.5" />
+    </edge>
+    <edge source="edu.rice.comp504.model.DispatchAdapter" target="edu.rice.comp504.model.cmd">
+      <point x="0.0" y="14.5" />
+      <point x="89.71333333333332" y="54.0" />
+      <point x="94.16666666666666" y="54.0" />
+      <point x="37.66666666666666" y="-14.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="216.0" y="224.0" />
+  <SelectedNodes />
+  <Categories>
+    <Category>Inner Classes</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

@@ -1,0 +1,154 @@
+'use strict'
+
+//app to draw polymorphic shapes on canvas
+var app;
+var update_values;
+var interact_values;
+var switch_type_indicator;
+
+function createApp(canvas) {
+    var c = canvas.getContext("2d");
+
+    var drawBall = function(x, y, radius, color) {
+        c.beginPath();
+        c.arc(x, y, radius, 0, 6.3, false);
+        c.closePath();
+        c.fillStyle = color;
+        c.fill();
+        if(radius > 2) c.stroke();
+    }
+
+    var clear = function() {
+        c.clearRect(0,0, canvas.width, canvas.height);
+    }
+
+
+    return {
+        drawBall: drawBall,
+        clear: clear
+    }
+}
+
+
+window.onload = function() {
+    app = createApp(document.querySelector("canvas"));
+    canvasDims();
+    setInterval(updateBallWorld, 100);
+
+    $("#btn-load-norm").click(function () {
+        loadBall(false)
+    });
+    $("#btn-load-switcher").click(function () {
+        loadBall(true)
+    });
+    $("#btn-switch").click(function () {
+        switchStrategy()
+    });
+    $("#btn-clear").click(function () {
+        resetBallWorld()
+    });
+}
+
+/**
+ * load a paint at a location on the canvas
+ */
+function loadBall(switcher) {
+
+    setUpValues();
+
+    console.log("view trying to load");
+
+    $.post("/load", {switcher: switcher, updatestrategies: update_values, interactstrategies:
+        interact_values}, function (data, status) {
+        app.drawBall(data.loc.x, data.loc.y, data.radius, data.color);
+    }, "json");
+
+}
+
+function switchStrategy() {
+
+    setUpValues();
+
+    $.post("/switch", {updatestrategies: update_values, interactstrategies:
+        interact_values, what_to_switch: switch_type_indicator}, function (data, status) {
+    }, "json");
+}
+
+function setUpValues() {
+    update_values = "";
+    interact_values = "";
+    switch_type_indicator = 0;
+
+    var slts = ["slt-updatestrategy", "slt-interactstrategy", "slt-strat_to_switch"];
+    var my_choices;
+
+    for(var i = 0; i < 3; i++) {
+        my_choices = document.getElementById(slts[i]);
+        if(my_choices.length > 0) {
+            for(var j = 0; j < my_choices.length; j++) {
+                if(my_choices[j].selected === true) {
+                    switch(i) {
+                        case 0:
+                            update_values += my_choices[j].value + " ";
+                            break;
+                        case 1:
+                            interact_values += my_choices[j].value + " ";
+                            break;
+                        case 2:
+                            if(j === 0) switch_type_indicator = 1;
+                            if(j === 1) {
+                                if(switch_type_indicator === 1) switch_type_indicator = 0;
+                                else switch_type_indicator = 2;
+                            }
+                            break;
+                        default:
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+
+
+function updateBallWorld() {
+    $.get("/update", function(data, status) {
+        clear();
+
+        data.obs.forEach(function(element) {
+            app.drawBall(element.loc.x, element.loc.y, element.radius, element.color);
+        });
+
+    }, "json");
+}
+
+/**
+ * Pass along the canvas dimensions
+ */
+function canvasDims() {
+    var c = document.querySelector("canvas");
+    $.get("/canvas/" + c.width + "/" + c.height, function(data, status){
+
+    }, "json");
+}
+
+
+/**
+ * Reset canvas
+ */
+function resetBallWorld() {
+    $.get("/clear", function (data, status) {
+        clearInterval(intervalID);
+        clear();
+    }, "json");
+}
+
+
+/**
+ * Clear the canvas
+ */
+function clear() {
+    app.clear();
+}
+

@@ -1,0 +1,63 @@
+package edu.rice.comp504.model.strategy.updateStrategy;
+
+import java.util.LinkedList;
+
+/**
+ * Strategies are generated in more than one place. This factory saves us from repeating the code.
+ */
+public class UpdateStrategyFactory {
+
+    private static UpdateStrategyFactory my_up_factory;
+
+    /**
+     * the constructor
+     */
+    private UpdateStrategyFactory() {
+    }
+
+    /**
+     * the factory is a singleton.
+     * @return the singleton instance of the factory.
+     */
+    public static UpdateStrategyFactory makeFactory() {
+        if(my_up_factory == null) {
+            my_up_factory = new UpdateStrategyFactory();
+        }
+        return my_up_factory;
+    }
+
+    /**
+     * Create a new base strategy or retrieve a singleton; wrap it up as specified in the word string.
+     * @param word
+     * @return the prepared strategy.
+     */
+    public IUpdateStrategy makeStrategy(String word) {
+
+        IUpdateStrategy my_strategy;
+        LinkedList<IUpdateStrategy> new_strategies = new LinkedList<>();
+
+        if(word.contains("straight")) new_strategies.add(StraightStrategy.makeStrategy());
+        if(word.contains("rotate")) new_strategies.add(RotateStrategy.makeStrategy());
+        if(word.contains("dejavu")) new_strategies.add(new DejaVuStrategy());
+        if(word.contains("pulse")) new_strategies.add(new PulseStrategy());
+        if(word.contains("cornergravity")) new_strategies.add(new CornerGravityStrategy());
+        if(word.contains("colorchange")) new_strategies.add(ColorChangeStrategy.makeStrategy());
+        if(word.contains("wander")) new_strategies.add(WanderStrategy.makeStrategy());
+        if(word.contains("straighttohell")) new_strategies.add(new StraightToHellStrategy(6));
+        if(word.contains("null")) new_strategies.add(NullUpdateStrategy.makeStrategy());
+        System.out.println("size "+new_strategies.size());
+        if(new_strategies.size() == 0) {
+            System.out.println("hi, must be null");
+            new_strategies.add(NullUpdateStrategy.makeStrategy());
+        }
+
+        if(new_strategies.size() > 1) my_strategy = new CompositeUpdateStrategy(new_strategies);
+        else my_strategy = new_strategies.get(0);
+
+        if(word.contains("switcher")) my_strategy = new SwitcherUpdateStrategy(my_strategy);
+
+        if(word.contains("override_update")) my_strategy = new OverrideUpdateStrategy(my_strategy);
+
+        return my_strategy;
+    }
+}
