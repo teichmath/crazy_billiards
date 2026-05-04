@@ -6,6 +6,7 @@ import edu.rice.comp504.model.paint.Ball;
 import spark.Request;
 
 import java.awt.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static spark.Spark.*;
 
@@ -14,13 +15,12 @@ import static spark.Spark.*;
  */
 public class BallWorldController {
 
+    private static final ConcurrentHashMap<String, DispatchAdapter> worlds = new ConcurrentHashMap<>();
+
     private static DispatchAdapter getWorld(Request request) {
-        DispatchAdapter world = request.session(true).attribute("world");
-        if (world == null) {
-            world = new DispatchAdapter();
-            request.session(true).attribute("world", world);
-        }
-        return world;
+        String sid = request.queryParams("sid");
+        if (sid == null || sid.isEmpty()) sid = "default";
+        return worlds.computeIfAbsent(sid, k -> new DispatchAdapter());
     }
 
     public static void main(String[] args) {
@@ -60,7 +60,6 @@ public class BallWorldController {
         get("/update", (request, response) -> {
             DispatchAdapter dis = getWorld(request);
             dis.updateBallWorld();
-            System.out.println("happy to update.");
             return gson.toJson(dis);
         });
 
