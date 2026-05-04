@@ -1,7 +1,7 @@
 'use strict'
 
 var SERVER_URL = window.location.hostname === "teichmath.github.io"
-    ? "https://YOUR-APP.up.railway.app"
+    ? "https://web-production-208f4.up.railway.app"
     : "";
 
 var app;
