@@ -52,6 +52,7 @@ function fitCanvas() {
 }
 
 window.onload = function() {
+    $.ajaxSetup({ cache: false });
     app = createApp(document.getElementById("main-canvas"));
     canvasDims();
     fitCanvas();
@@ -95,6 +96,9 @@ function setUpValues() {
 function updateBallWorld() {
     $.get(SERVER_URL + "/update?sid=" + SESSION_ID, function(data, status) {
         clear();
+        if (data.obs.length > 0) {
+            console.log("ball0 loc:", data.obs[0].loc.x, data.obs[0].loc.y, "vel:", data.obs[0].vel ? data.obs[0].vel.x : "?");
+        }
         data.obs.forEach(function(element) {
             app.drawBall(element.loc.x, element.loc.y, element.radius, element.color);
         });

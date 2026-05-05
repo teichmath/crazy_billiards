@@ -35,6 +35,7 @@ public class BallWorldController {
             response.header("Access-Control-Allow-Credentials", "true");
             response.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
             response.header("Access-Control-Allow-Headers", "Content-Type");
+            response.header("Cache-Control", "no-store");
         });
 
         options("/*", (request, response) -> {
