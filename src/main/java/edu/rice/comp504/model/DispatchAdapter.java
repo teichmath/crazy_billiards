@@ -24,6 +24,7 @@ public class DispatchAdapter extends BallObservable {
     private UpdateStrategyFactory my_upfact;
     private InteractStrategyFactory my_intfact;
     public int break_it;
+    public int frameCount;
 
     /**
      * Constructor

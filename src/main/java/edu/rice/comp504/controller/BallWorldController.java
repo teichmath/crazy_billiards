@@ -46,9 +46,10 @@ public class BallWorldController {
         Gson gson = new Gson();
 
         post("/load", (request, response) -> {
+            String body = request.body();
             DispatchAdapter dis = getWorld(request);
             System.out.println("trying to load");
-            Ball b = dis.loadBall(request.body());
+            Ball b = dis.loadBall(body);
             return gson.toJson(b);
         });
 
