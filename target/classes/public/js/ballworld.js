@@ -1,5 +1,15 @@
 'use strict'
 
+var SERVER_URL = window.location.hostname === "teichmath.github.io"
+    ? "https://web-production-208f4.up.railway.app"
+    : "";
+
+var SESSION_ID = localStorage.getItem("ballworld_session");
+if (!SESSION_ID) {
+    SESSION_ID = Math.random().toString(36).substr(2, 9) + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem("ballworld_session", SESSION_ID);
+}
+
 var app;
 var update_values;
 var interact_values;
@@ -42,6 +52,7 @@ function fitCanvas() {
 }
 
 window.onload = function() {
+    $.ajaxSetup({ cache: false });
     app = createApp(document.getElementById("main-canvas"));
     canvasDims();
     fitCanvas();
@@ -58,7 +69,7 @@ window.onload = function() {
 
 function loadBall() {
     setUpValues();
-    $.post("/load", {switcher: false, updatestrategies: update_values, interactstrategies:
+    $.post(SERVER_URL + "/load?sid=" + SESSION_ID, {switcher: false, updatestrategies: update_values, interactstrategies:
         interact_values}, function (data, status) {
         app.drawBall(data.loc.x, data.loc.y, data.radius, data.color);
     }, "json");
@@ -83,8 +94,11 @@ function setUpValues() {
 }
 
 function updateBallWorld() {
-    $.get("/update", function(data, status) {
+    $.get(SERVER_URL + "/update?sid=" + SESSION_ID, function(data, status) {
         clear();
+        if (data.obs.length > 0) {
+            console.log("ball0 loc:", data.obs[0].loc.x, data.obs[0].loc.y, "vel:", data.obs[0].vel ? data.obs[0].vel.x : "?");
+        }
         data.obs.forEach(function(element) {
             app.drawBall(element.loc.x, element.loc.y, element.radius, element.color);
         });
@@ -93,11 +107,11 @@ function updateBallWorld() {
 
 function canvasDims() {
     var c = document.getElementById("main-canvas");
-    $.get("/canvas/" + c.width + "/" + c.height, function(data, status){}, "json");
+    $.get(SERVER_URL + "/canvas/" + c.width + "/" + c.height + "?sid=" + SESSION_ID, function(data, status){}, "json");
 }
 
 function resetBallWorld() {
-    $.get("/clear", function (data, status) {
+    $.get(SERVER_URL + "/clear?sid=" + SESSION_ID, function (data, status) {
         clear();
     }, "json");
 }

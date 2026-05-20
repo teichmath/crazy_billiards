@@ -7,6 +7,9 @@ import spark.Request;
 
 import java.awt.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static spark.Spark.*;
 
@@ -15,16 +18,38 @@ import static spark.Spark.*;
  */
 public class BallWorldController {
 
+    private static final long SESSION_TIMEOUT_MS = 30_000;
+
     private static final ConcurrentHashMap<String, DispatchAdapter> worlds = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Long> lastSeen = new ConcurrentHashMap<>();
 
     private static DispatchAdapter getWorld(Request request) {
         String sid = request.queryParams("sid");
         if (sid == null || sid.isEmpty()) sid = "default";
+        lastSeen.put(sid, System.currentTimeMillis());
         return worlds.computeIfAbsent(sid, k -> new DispatchAdapter());
+    }
+
+    private static void startSessionReaper() {
+        ScheduledExecutorService reaper = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "session-reaper");
+            t.setDaemon(true);
+            return t;
+        });
+        reaper.scheduleAtFixedRate(() -> {
+            long cutoff = System.currentTimeMillis() - SESSION_TIMEOUT_MS;
+            lastSeen.forEach((sid, ts) -> {
+                if (ts < cutoff) {
+                    worlds.remove(sid);
+                    lastSeen.remove(sid);
+                }
+            });
+        }, 10, 10, TimeUnit.SECONDS);
     }
 
     public static void main(String[] args) {
         port(Integer.parseInt(System.getenv().getOrDefault("PORT", "4567")));
+        startSessionReaper();
 
         staticFiles.location("/public");
 
