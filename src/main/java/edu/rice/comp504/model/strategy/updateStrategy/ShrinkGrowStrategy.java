@@ -41,7 +41,7 @@ public class ShrinkGrowStrategy implements IUpdateStrategy {
     public void updateState(Ball context) {
         if (!initialized) initialize(context);
 
-        context.nextLocation((int) context.getVelocity().getX(), (int) context.getVelocity().getY());
+        context.nextLocation(context.getVelocity().getX(), context.getVelocity().getY());
 
         if (growing) {
             currentRadius += ratePerFrame;

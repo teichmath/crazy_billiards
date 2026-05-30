@@ -35,11 +35,11 @@ public class DejaVuStrategy implements IUpdateStrategy {
      * @param context The ball to update
      */
     public void updateState(Ball context) {
-        context.nextLocation((int) context.getVelocity().getX(), (int) context.getVelocity().getY());
+        context.nextLocation(context.getVelocity().getX(), context.getVelocity().getY());
         jump_clock++;
         if (jump_clock > 10) {
             Point newloc = context.getLocation();
-            newloc = new Point((int) newloc.getX() - 4 * (int) context.getVelocity().getX(), (int) newloc.getY() - 4 * (int) context.getVelocity().getY());
+            newloc = new Point((int)(newloc.getX() - 4 * context.getVelocity().getX()), (int)(newloc.getY() - 4 * context.getVelocity().getY()));
             context.setLocation(newloc);
             jump_clock = 0;
         }

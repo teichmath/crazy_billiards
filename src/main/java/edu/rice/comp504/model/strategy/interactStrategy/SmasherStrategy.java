@@ -4,6 +4,7 @@ import edu.rice.comp504.model.paint.Ball;
 import edu.rice.comp504.model.strategy.updateStrategy.StraightToHellStrategy;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.util.LinkedList;
 
 
@@ -47,7 +48,8 @@ System.out.println("hi from smasher 1");
         double destvely = dest.getVelocity().getY();
         System.out.println("hi from smasher 2");
 
-        this.resulting_balls.add(new Ball(dest.getLocation(), 2, dest.getVelocity(), dest.getColor(),
+        this.resulting_balls.add(new Ball(dest.getLocation(), 2,
+                new Point2D.Double(dest.getVelocity().getX(), dest.getVelocity().getY()), dest.getColor(),
                 new StraightToHellStrategy(6), new OverrideInteractStrategy(dest.getInteractStrategy())));
 
         int smash_bit_rounds = (int) (Math.floor(dest.getRadius() / 10));
@@ -59,7 +61,7 @@ System.out.println("hi from smasher 1");
                 double vector_x = (b + 1) * 10 * Math.cos(angle);
                 double vector_y = (b + 1) * 10 * Math.sin(angle);
                 Point new_loc = new Point((int) (destx + vector_x), (int) (desty + vector_y));
-                Point new_vel = new Point((int) (2 * destvelx + 0.5 * vector_x), (int) (2 * destvely + 0.5 * vector_y));
+                Point2D.Double new_vel = new Point2D.Double(2 * destvelx + 0.5 * vector_x, 2 * destvely + 0.5 * vector_y);
                 this.resulting_balls.add(new Ball(new_loc, 2, new_vel, dest.getColor(),
                         new StraightToHellStrategy(6),
                         new OverrideInteractStrategy(dest.getInteractStrategy())));

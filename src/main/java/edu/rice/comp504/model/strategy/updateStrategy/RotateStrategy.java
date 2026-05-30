@@ -43,6 +43,6 @@ public class RotateStrategy implements IUpdateStrategy {
      */
     public void updateState(Ball context) {
         context.rotate(.2);
-        context.nextLocation((int)(context.getVelocity().getX()), (int)(context.getVelocity().getY()));
+        context.nextLocation(context.getVelocity().getX(), context.getVelocity().getY());
     }
 }

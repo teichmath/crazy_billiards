@@ -3,7 +3,7 @@ package edu.rice.comp504.model.strategy.updateStrategy;
 
 import edu.rice.comp504.model.paint.Ball;
 
-import java.awt.*;
+import java.awt.geom.Point2D;
 
 /**
  * The wander strategy will accelerate the ball in random directions.
@@ -49,8 +49,8 @@ public class WanderStrategy implements IUpdateStrategy {
         int newvely = (int) context.getVelocity().getY() + getRnd(-10, 20);
         if (Math.abs(newvelx) > 30) newvelx = (int) (newvelx * 0.8);
         if (Math.abs(newvely) > 30) newvely = (int) (newvely * 0.8);
-        context.setVelocity(new Point(newvelx, newvely));
-        context.nextLocation((int)(context.getVelocity().getX()), (int)(context.getVelocity().getY()));
+        context.setVelocity(new Point2D.Double(newvelx, newvely));
+        context.nextLocation(context.getVelocity().getX(), context.getVelocity().getY());
     }
 
     /**

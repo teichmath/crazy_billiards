@@ -4,7 +4,7 @@ import edu.rice.comp504.model.paint.Ball;
 import edu.rice.comp504.model.strategy.updateStrategy.IUpdateStrategy;
 import edu.rice.comp504.model.strategy.updateStrategy.IUpdateWrapperStrategy;
 
-import java.awt.*;
+import java.awt.geom.Point2D;
 
 /**
  * Wrapper for use with the Leader interaction strategy. A "follower" carries this wrapper on its own update strategy,
@@ -47,8 +47,9 @@ public class FollowerWrapperUpdateStrategy extends IUpdateWrapperStrategy {
         if(leader.getRadius() != 0) {
             double vel_vector_x = leader.getLocation().getX() - context.getLocation().getX();
             double vel_vector_y = leader.getLocation().getY() - context.getLocation().getY();
-            context.setVelocity(new Point((int)(0.3*context.getVelocity().getX() + 0.1*vel_vector_x),
-                    (int)(0.3*context.getVelocity().getY() + 0.1*vel_vector_y)));
+            context.setVelocity(new Point2D.Double(
+                    0.3 * context.getVelocity().getX() + 0.1 * vel_vector_x,
+                    0.3 * context.getVelocity().getY() + 0.1 * vel_vector_y));
         }
 
 

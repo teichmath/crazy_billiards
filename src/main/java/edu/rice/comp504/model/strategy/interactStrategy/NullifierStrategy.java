@@ -3,7 +3,7 @@ package edu.rice.comp504.model.strategy.interactStrategy;
 import edu.rice.comp504.model.paint.Ball;
 import edu.rice.comp504.model.strategy.updateStrategy.NullUpdateStrategy;
 
-import java.awt.*;
+import java.awt.geom.Point2D;
 
 
 /**
@@ -44,7 +44,7 @@ public class NullifierStrategy implements IInteractStrategy {
      * @param dest The dest ball behavior will be affected by the src ball interaction strategy
      */
     public void interact(Ball src, Ball dest) {
-        dest.setVelocity(new Point(0,0));
+        dest.setVelocity(new Point2D.Double(0, 0));
         dest.setUpdateStrategy(NullUpdateStrategy.makeStrategy());
         dest.setInteractStrategy(NullInteractStrategy.makeStrategy());
     }

@@ -2,7 +2,7 @@ package edu.rice.comp504.model.strategy.interactStrategy;
 
 import edu.rice.comp504.model.paint.Ball;
 
-import java.awt.*;
+import java.awt.geom.Point2D;
 
 /**
  * A ball with this strategy exerts a repulsive force on any other ball within its influence radius.
@@ -44,9 +44,8 @@ public class RepelStrategy implements IInteractStrategy {
         double fx = forceMag * dx / dist;
         double fy = forceMag * dy / dist;
 
-        dest.setVelocity(new Point(
-                (int) Math.round(dest.getVelocity().getX() + fx),
-                (int) Math.round(dest.getVelocity().getY() + fy)
-        ));
+        dest.setVelocity(new Point2D.Double(
+                dest.getVelocity().getX() + fx,
+                dest.getVelocity().getY() + fy));
     }
 }

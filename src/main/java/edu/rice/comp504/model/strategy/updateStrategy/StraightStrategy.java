@@ -41,6 +41,6 @@ public class StraightStrategy implements IUpdateStrategy {
      * @param context The ball to update
      */
     public void updateState(Ball context) {
-        context.nextLocation((int)(context.getVelocity().getX()), (int)(context.getVelocity().getY()));
+        context.nextLocation(context.getVelocity().getX(), context.getVelocity().getY());
     }
 }

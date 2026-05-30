@@ -9,6 +9,7 @@ import edu.rice.comp504.model.strategy.interactStrategy.*;
 import edu.rice.comp504.model.strategy.updateStrategy.*;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.util.LinkedList;
 
 
@@ -244,11 +245,18 @@ public class DispatchAdapter extends BallObservable {
      * @return A new ball
      */
     public Ball makeBall(IUpdateStrategy uStrategy, IInteractStrategy iStrategy) {
-        return new Ball(new Point((int) Math.floor(Math.random() * this.dims.x),
-                (int) Math.floor(Math.random() * this.dims.y)), (int) Math.floor(Math.random() * 40 + 10),
-                new Point((int) Math.floor(Math.random() * 25 + 1), (int) Math.floor(Math.random() * 25) + 1),
+        Ball ball = new Ball(
+                new Point((int) Math.floor(Math.random() * this.dims.x), (int) Math.floor(Math.random() * this.dims.y)),
+                (int) Math.floor(Math.random() * 40 + 10),
+                new Point2D.Double(Math.floor(Math.random() * 25 + 1), Math.floor(Math.random() * 25) + 1),
                 "rgb(" + (int)Math.floor(Math.random()*255)+","+ (int)Math.floor(Math.random()*255)+ ","
                         +(int)Math.floor(Math.random()*255)+")", uStrategy, iStrategy);
+        String upName = uStrategy.getName();
+        if (!upName.contains("wander") && !upName.contains("mowthelawn")
+                && !upName.contains("cornergravity") && !upName.contains("drag")) {
+            ball.setFrictionFactor(0.99);
+        }
+        return ball;
     }
 
 

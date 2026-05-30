@@ -2,7 +2,7 @@ package edu.rice.comp504.model.strategy.updateStrategy;
 
 import edu.rice.comp504.model.paint.Ball;
 
-import java.awt.*;
+import java.awt.geom.Point2D;
 
 /**
  * Like Straight, but a friction force decelerates the ball to a stop after each impulse.
@@ -35,9 +35,9 @@ public class DragStrategy implements IUpdateStrategy {
             if ((velY > 0 && ctxY < 0) || (velY < 0 && ctxY > 0) || Math.abs(ctxY - velY) > 1.0) velY = ctxY;
         }
 
-        context.nextLocation((int) Math.round(velX), (int) Math.round(velY));
+        context.nextLocation(velX, velY);
         velX *= frictionFactor;
         velY *= frictionFactor;
-        context.setVelocity(new Point((int) Math.round(velX), (int) Math.round(velY)));
+        context.setVelocity(new Point2D.Double(velX, velY));
     }
 }

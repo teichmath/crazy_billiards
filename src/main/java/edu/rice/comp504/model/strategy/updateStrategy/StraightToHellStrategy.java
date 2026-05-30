@@ -31,7 +31,7 @@ public class StraightToHellStrategy implements IUpdateStrategy {
      * @param context The ball to update
      */
     public void updateState(Ball context) {
-        context.nextLocation((int)(context.getVelocity().getX()), (int)(context.getVelocity().getY()));
+        context.nextLocation(context.getVelocity().getX(), context.getVelocity().getY());
         life_clock--;
         if(life_clock <= 0) context.setRadius(0);
     }

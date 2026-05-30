@@ -5,6 +5,7 @@ import edu.rice.comp504.model.strategy.updateStrategy.StraightToHellStrategy;
 import edu.rice.comp504.model.strategy.updateStrategy.UpdateStrategyFactory;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.util.LinkedList;
 
 
@@ -72,7 +73,7 @@ public class SplitterStrategy implements IInteractStrategy {
                 double new_pupa_vel_y = destvely - a * destvelx * 0.5;
 
                 this.resulting_balls.add(new Ball(new Point((int) new_pupa_loc_x, (int) new_pupa_loc_y),
-                        (int) (dest_radius * 0.4), new Point((int) new_pupa_vel_x, (int) new_pupa_vel_y), dest.getColor(),
+                        (int) (dest_radius * 0.4), new Point2D.Double(new_pupa_vel_x, new_pupa_vel_y), dest.getColor(),
                         my_upfact.makeStrategy(dest.getUpdateStrategy().getName()),
                         my_intfact.makeStrategy(dest.getInteractStrategy().getName())));
             }
@@ -86,7 +87,7 @@ public class SplitterStrategy implements IInteractStrategy {
         else {
             double vel_mag = 1.25*Math.sqrt((Math.pow(destvelx, 2) + Math.pow(destvely, 2) )/ 2);
             this.resulting_balls.add( new Ball( new Point((int)(destx + 1.1*dest_radius),
-                    (int)(desty + 1.1*dest_radius)), (int)(dest_radius * 0.4), new Point((int)vel_mag, (int)vel_mag),
+                    (int)(desty + 1.1*dest_radius)), (int)(dest_radius * 0.4), new Point2D.Double(vel_mag, vel_mag),
                     dest.getColor(), my_upfact.makeStrategy(dest.getUpdateStrategy().getName()),
                     my_intfact.makeStrategy("blob")));
         }

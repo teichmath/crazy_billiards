@@ -6,6 +6,7 @@ import edu.rice.comp504.model.strategy.interactStrategy.IInteractStrategy;
 import edu.rice.comp504.model.strategy.updateStrategy.IUpdateStrategy;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
 import edu.rice.comp504.model.BallObservable;
 import edu.rice.comp504.model.BallObserver;
 
@@ -16,20 +17,19 @@ public class Ball implements BallObserver {
 
     private int radius;
     private Point loc;
-    private Point vel;
+    private Point2D.Double vel;
+    private double frictionFactor = 1.0;
     private String color;
     private transient IUpdateStrategy uStrategy;
     private transient IInteractStrategy iStrategy;
-
 
     /**
      * Constructor for Ball
      * @param loc The paint location.  The origin (0,0) is the upper left corner of the canvas.
      * @param radius  The paint radius.
-     * @param vel The paint velocity.  The velocity is a vector with an x and y component.
+     * @param vel The paint velocity.
      */
-    public Ball(Point loc, int radius, Point vel, String color, IUpdateStrategy uStrategy, IInteractStrategy iStrategy) {
-
+    public Ball(Point loc, int radius, Point2D.Double vel, String color, IUpdateStrategy uStrategy, IInteractStrategy iStrategy) {
         this.loc = loc;
         this.radius = radius;
         this.vel = vel;
@@ -38,209 +38,108 @@ public class Ball implements BallObserver {
         this.iStrategy = iStrategy;
     }
 
-    /**
-     * Get the radius of the paint.
-     * @return The paint radius.
-     */
     public int getRadius() { return this.radius; }
-
-    /**
-     * Set the radius of the paint.
-     * @param r The paint radius.
-     */
-    public void setRadius(int r) {this.radius = r; }
-
-    /**
-     * Get the ball location in the paint world.
-     * @return The ball location.
-     */
+    public void setRadius(int r) { this.radius = r; }
     public Point getLocation() { return this.loc; }
+    public void setLocation(Point loc) { this.loc = loc; }
+    public String getColor() { return this.color; }
+    public void setColor(String color) { this.color = color; }
 
-
-    /**
-     * Set the ball location in the canvas.  The origin (0,0) is the top left corner of the canvas.
-     * @param loc  The ball x,y coordinate.
-     */
-    public void setLocation(Point loc) {this.loc = loc; }
-
-
-    /**
-     * Get the ball color
-     * @return The ball color
-     */
-    public String getColor() {
-        return this.color;
+    public void nextLocation(double velX, double velY) {
+        this.setLocation(new Point((int) Math.round(this.loc.getX() + velX), (int) Math.round(this.loc.getY() + velY)));
     }
 
-    /**
-     * Set the ball color
-     * @param color The new color
-     */
-    public void setColor(String color) {this.color = color;
-    }
+    public Point2D.Double getVelocity() { return this.vel; }
+    public void setVelocity(Point2D.Double vel) { this.vel = vel; }
 
+    public double getFrictionFactor() { return frictionFactor; }
+    public void setFrictionFactor(double f) { frictionFactor = f; }
 
-    /**
-     * Compute the next location of the paint in the paint world given the velocity
-     * @param velX
-     * @param velY
-     */
-    public void nextLocation(int velX, int velY) {
-        this.setLocation(new Point((int) (this.loc.getX() + velX), (int) (this.loc.getY() + velY)));
-    }
-
-    /**
-     * Get the velocity of the ball.
-     * @return The ball velocity
-     */
-    public  Point getVelocity() { return this.vel; }
-
-    /**
-     * Set the ball velocity.
-     * @param vel The new ball velocity.
-     */
-    public void setVelocity(Point vel) {this.vel = vel; }
-
-    /**
-     * Get the ball strategy.
-     * @return The ball strategy.
-     */
     public IUpdateStrategy getUpdateStrategy() { return this.uStrategy; }
+    public void setUpdateStrategy(IUpdateStrategy strategy) { this.uStrategy = strategy; }
+    public IInteractStrategy getInteractStrategy() { return this.iStrategy; }
+    public void setInteractStrategy(IInteractStrategy strategy) { this.iStrategy = strategy; }
 
-    /**
-     * Set the ball strategy to the new strategy.
-     * @param strategy  The new strategy.
-     */
-    public void setUpdateStrategy(IUpdateStrategy strategy) {this.uStrategy = strategy; }
-
-    /**
-     * Get the ball-to-ball interaction strategy.
-     * @return  The ball-to-ball interaction strategy.
-     */
-    public IInteractStrategy getInteractStrategy() {
-        return this.iStrategy;
-    }
-
-    /**
-     * Set the ball-to-ball interaction strategy.
-     * @param strategy  The new ball-to-ball interaction strategy
-     */
-    public void setInteractStrategy(IInteractStrategy strategy) { this.iStrategy = strategy;}
-
-    /**
-     * Rotate the paint.
-     * @param angle  The angle that determines how far to rotate the paint.
-     */
     public void rotate(double angle) {
-        Point old_vel = getVelocity();
-        double new_vel_x = old_vel.getX()*Math.cos(angle) - old_vel.getY()*Math.sin(angle);
-        double new_vel_y = old_vel.getY()*Math.cos(angle) + old_vel.getX()*Math.sin(angle);
-        setVelocity(new Point((int)Math.round(new_vel_x), (int)Math.round(new_vel_y)));
+        double new_vel_x = vel.getX() * Math.cos(angle) - vel.getY() * Math.sin(angle);
+        double new_vel_y = vel.getY() * Math.cos(angle) + vel.getX() * Math.sin(angle);
+        setVelocity(new Point2D.Double(new_vel_x, new_vel_y));
     }
 
     /**
      * Reports collision between a shape and a wall in the shape world.
      * @param dims  The canvas dimensions
-     *              return boolean value representing whether the collision has occurred.
      */
     public boolean wallCollision(Point dims) {
         String sides_hit = "";
-        if(radius - getLocation().getX() > 0) sides_hit += "l";
-        if(getLocation().getX() - (dims.getX() - radius) > 0) sides_hit += "r";
-        if(radius - getLocation().getY() > 0) sides_hit += "t";
-        if(getLocation().getY() - (dims.getY() - radius) > 0) sides_hit += "b";
+        if (radius - getLocation().getX() > 0) sides_hit += "l";
+        if (getLocation().getX() - (dims.getX() - radius) > 0) sides_hit += "r";
+        if (radius - getLocation().getY() > 0) sides_hit += "t";
+        if (getLocation().getY() - (dims.getY() - radius) > 0) sides_hit += "b";
 
-        if(sides_hit.length() > 0) {
-
-            double vel_x = getVelocity().getX();
-            double vel_y = getVelocity().getY();
+        if (sides_hit.length() > 0) {
+            double vel_x = vel.getX();
+            double vel_y = vel.getY();
             double loc_x = getLocation().getX();
             double loc_y = getLocation().getY();
 
-            if (sides_hit.contains("l")) {
-                vel_x = Math.abs(vel_x);
-                loc_x = radius;
-            }
-            if (sides_hit.contains("r")) {
-                vel_x = Math.abs(vel_x) * -1;
-                loc_x = dims.getX() - radius;
-            }
-            if (sides_hit.contains("t")) {
-                vel_y = Math.abs(vel_y);
-                loc_y = radius;
-            }
-            if (sides_hit.contains("b")) {
-                vel_y = Math.abs(vel_y) * -1;
-                loc_y = dims.getY() - radius;
-            }
-            setVelocity(new Point((int)vel_x, (int)vel_y));
-            setLocation(new Point((int)loc_x, (int)loc_y));
+            if (sides_hit.contains("l")) { vel_x = Math.abs(vel_x); loc_x = radius; }
+            if (sides_hit.contains("r")) { vel_x = Math.abs(vel_x) * -1; loc_x = dims.getX() - radius; }
+            if (sides_hit.contains("t")) { vel_y = Math.abs(vel_y); loc_y = radius; }
+            if (sides_hit.contains("b")) { vel_y = Math.abs(vel_y) * -1; loc_y = dims.getY() - radius; }
 
+            setVelocity(new Point2D.Double(vel_x, vel_y));
+            setLocation(new Point((int) loc_x, (int) loc_y));
             return true;
         }
-        else return false;
+        return false;
     }
 
-
-public boolean ballCollision(Ball other) {return false;}
-
+    public boolean ballCollision(Ball other) { return false; }
 
     /**
-     * Detects collision between two balls in the ball world.  Change direction if ball collides with a ball.
+     * Detects collision between two balls in the ball world.
      */
     public boolean ballCollision(Ball other, DispatchAdapter dad) {
-        //get distance between locations
-        double distance = Math.sqrt(Math.pow(this.loc.getX()-other.getLocation().getX(),2)
-                + Math.pow(this.loc.getY() - other.getLocation().getY(),2));
+        double distance = Math.sqrt(Math.pow(this.loc.getX() - other.getLocation().getX(), 2)
+                + Math.pow(this.loc.getY() - other.getLocation().getY(), 2));
         boolean collision = false;
-        //collision if dist is less than or equal to the sum of the radii
-        if(distance <= this.radius + other.getRadius()) collision = true;
-        //in which case, adjust the velocity signs
+        if (distance <= this.radius + other.getRadius()) collision = true;
 
-        if(collision) {
+        if (collision) {
             double this_vel_x = this.vel.getX();
             double this_vel_y = this.vel.getY();
             double other_vel_x = other.vel.getX();
             double other_vel_y = other.vel.getY();
 
-            if(this.loc.getX() < other.getLocation().getX()) {
-                if(this_vel_x > 0) this_vel_x *= -1;
-                if(other_vel_x < 0) other_vel_x *= -1;
+            if (this.loc.getX() < other.getLocation().getX()) {
+                if (this_vel_x > 0) this_vel_x *= -1;
+                if (other_vel_x < 0) other_vel_x *= -1;
+            }
+            if (this.loc.getX() > other.getLocation().getX()) {
+                if (this_vel_x < 0) this_vel_x *= -1;
+                if (other_vel_x > 0) other_vel_x *= -1;
+            }
+            if (this.loc.getY() < other.getLocation().getY()) {
+                if (this_vel_y > 0) this_vel_y *= -1;
+                if (other_vel_y < 0) other_vel_y *= -1;
+            }
+            if (this.loc.getY() > other.getLocation().getY()) {
+                if (this_vel_y < 0) this_vel_y *= -1;
+                if (other_vel_y > 0) other_vel_y *= -1;
             }
 
-            if(this.loc.getX() > other.getLocation().getX()) {
-                if(this_vel_x < 0) this_vel_x *= -1;
-                if(other_vel_x > 0) other_vel_x *= -1;
-            }
-
-            if(this.loc.getY() < other.getLocation().getY()) {
-                if(this_vel_y > 0) this_vel_y *= -1;
-                if(other_vel_y < 0) other_vel_y *= -1;
-            }
-
-            if(this.loc.getY() > other.getLocation().getY()) {
-                if(this_vel_y < 0) this_vel_y *= -1;
-                if(other_vel_y > 0) other_vel_y *= -1;
-            }
-
-            this.setVelocity(new Point((int)this_vel_x, (int)this_vel_y));
-            other.setVelocity(new Point((int)other_vel_x, (int)other_vel_y));
+            this.setVelocity(new Point2D.Double(this_vel_x, this_vel_y));
+            other.setVelocity(new Point2D.Double(other_vel_x, other_vel_y));
         }
-
         return collision;
     }
 
-    /**
-     * Update the state of the paint using strategies associated with the paint.
-     */
     public void update(BallObservable obs, Object o) {
         try {
-            ((IBallCmd)o).execute(this);
+            ((IBallCmd) o).execute(this);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 }
-
-
-

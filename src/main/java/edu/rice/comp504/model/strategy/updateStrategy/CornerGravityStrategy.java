@@ -3,7 +3,7 @@ package edu.rice.comp504.model.strategy.updateStrategy;
 
 import edu.rice.comp504.model.paint.Ball;
 
-import java.awt.*;
+import java.awt.geom.Point2D;
 
 /**
  * CornerGravityStrategy accelerates the ball toward one of the canvas corners. The choice of which corner
@@ -48,9 +48,9 @@ public class CornerGravityStrategy implements IUpdateStrategy {
         if (y_gravity > y_gravity_limit) y_gravity--;
         if (y_gravity < y_gravity_limit) y_gravity++;
 
-        context.setVelocity(new Point((int) context.getVelocity().getX() + x_gravity, (int) context.getVelocity().getY() + y_gravity));
+        context.setVelocity(new Point2D.Double(context.getVelocity().getX() + x_gravity, context.getVelocity().getY() + y_gravity));
 
-        context.nextLocation((int)(context.getVelocity().getX()), (int)(context.getVelocity().getY()));
+        context.nextLocation(context.getVelocity().getX(), context.getVelocity().getY());
 
         if(x_gravity == x_gravity_limit && y_gravity == y_gravity_limit) {
             if(Math.random() < .04) x_gravity_limit = x_gravity_limit * -1;

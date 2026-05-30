@@ -5,6 +5,7 @@ import edu.rice.comp504.model.strategy.updateStrategy.StraightStrategy;
 import junit.framework.TestCase;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
 
 public class DispatchAdapterTest extends TestCase {
 
@@ -20,10 +21,10 @@ public class DispatchAdapterTest extends TestCase {
         assertTrue("no strategies makes null ball type test",
                 testnullball.getUpdateStrategy().getName().equals("null_update"));
 
-        Ball collider_a = new Ball(new Point(50, 50), 10, new Point(10, 10), "red",
+        Ball collider_a = new Ball(new Point(50, 50), 10, new Point2D.Double(10, 10), "red",
                 StraightStrategy.makeStrategy(), new BilliardStrategy());
 
-        Ball collider_b = new Ball(new Point(60, 60), 10, new Point(-10, -10), "red",
+        Ball collider_b = new Ball(new Point(60, 60), 10, new Point2D.Double(-10, -10), "red",
                 StraightStrategy.makeStrategy(), new BilliardStrategy());
 
         collider_a.ballCollision(collider_b);

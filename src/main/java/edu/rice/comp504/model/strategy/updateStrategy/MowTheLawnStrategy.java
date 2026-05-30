@@ -3,6 +3,7 @@ package edu.rice.comp504.model.strategy.updateStrategy;
 import edu.rice.comp504.model.paint.Ball;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
 
 /**
  * Ball sweeps back and forth across the canvas in a lawn-mowing pattern, like Space Invaders aliens.
@@ -14,7 +15,7 @@ public class MowTheLawnStrategy implements IUpdateStrategy {
 
     private final Point dims;
     private final boolean horizontal; // true = sweeps along x, advances along y
-    private final double sweepSpeed = 4.0;
+    private final double sweepSpeed;
 
     private boolean initialized = false;
     private int sweepDir;      // 1 or -1
@@ -29,6 +30,7 @@ public class MowTheLawnStrategy implements IUpdateStrategy {
         this.sweepDir = Math.random() < 0.5 ? 1 : -1;
         this.advanceDir = 1;
         this.lastSetSweepVelSign = sweepDir;
+        this.sweepSpeed = 3.0 + Math.random() * 5.0;
     }
 
     public String getName() { return "mowthelawn"; }
@@ -65,13 +67,13 @@ public class MowTheLawnStrategy implements IUpdateStrategy {
         int sweepVel = (int) (sweepSpeed * sweepDir);
 
         if (horizontal) {
-            context.setVelocity(new Point(sweepVel, advanceVel));
+            context.setVelocity(new Point2D.Double(sweepVel, advanceVel));
         } else {
-            context.setVelocity(new Point(advanceVel, sweepVel));
+            context.setVelocity(new Point2D.Double(advanceVel, sweepVel));
         }
 
         lastSetSweepVelSign = sweepDir;
-        context.nextLocation((int) context.getVelocity().getX(), (int) context.getVelocity().getY());
+        context.nextLocation(context.getVelocity().getX(), context.getVelocity().getY());
     }
 
     private void advanceRow(Ball context) {

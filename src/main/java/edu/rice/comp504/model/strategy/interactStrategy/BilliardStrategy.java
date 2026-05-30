@@ -2,21 +2,21 @@ package edu.rice.comp504.model.strategy.interactStrategy;
 
 import edu.rice.comp504.model.paint.Ball;
 
-import java.awt.*;
+import java.awt.geom.Point2D;
 
 /**
  * Simulates an elastic collision; transfers force from an interaction to both balls.
  */
 public class BilliardStrategy implements IInteractStrategy {
 
-    private Point force;
+    private double forceX = 0;
+    private double forceY = 0;
     private InteractStrategyUnwrapper my_int_unwrapper;
 
     /**
      * Constructor
      */
     public BilliardStrategy() {
-        force = new Point(0,0);
         my_int_unwrapper = InteractStrategyUnwrapper.makeUnwrapper();
     }
 
@@ -33,16 +33,14 @@ public class BilliardStrategy implements IInteractStrategy {
      * @param addy
      */
     public void addForce(double addx, double addy) {
-        this.force = new Point((int)(this.force.getX() + addx), (int)(this.force.getY() + addy));
+        this.forceX += addx;
+        this.forceY += addy;
     }
 
-    /**
-     * Gives the stored velocity change.
-     * @return force
-     */
-    public Point getForce() {return this.force;}
+    public double getForceX() { return forceX; }
+    public double getForceY() { return forceY; }
 
-    public void zeroForce() {this.force = new Point(0,0);}
+    public void zeroForce() { forceX = 0; forceY = 0; }
 
     /**
      * The billiard ball (src) will accelerate itself and the dest ball as though the dest ball
@@ -78,8 +76,9 @@ public class BilliardStrategy implements IInteractStrategy {
                         my_int_unwrapper.getBaseInteractStrategy(b, "billiard");
                 strat.addForce(a * force_vector_x, a * force_vector_y);
 
-            } else b.setVelocity(new Point((int) (b.getVelocity().getX() + force_vector_x),
-                    (int) (b.getVelocity().getY() + force_vector_y)));
+            } else b.setVelocity(new Point2D.Double(
+                    b.getVelocity().getX() + force_vector_x,
+                    b.getVelocity().getY() + force_vector_y));
         }
 
     }
