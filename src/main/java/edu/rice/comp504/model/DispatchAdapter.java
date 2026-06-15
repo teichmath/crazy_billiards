@@ -244,8 +244,15 @@ public class DispatchAdapter extends BallObservable {
      * Only the ball whose area contains (x, y) is affected.
      */
     public void applyImpulse(double x, double y, double angle, double strength) {
-        setChanged();
-        notifyObservers(new ImpulseCommand(x, y, angle, strength));
+        ImpulseCommand cmd = new ImpulseCommand(x, y, angle, strength);
+        System.out.println("impulse x=" + x + " y=" + y + " angle=" + angle + " strength=" + strength);
+        for (BallObserver o : getObservers()) {
+            try {
+                cmd.execute((Ball) o);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
     /**

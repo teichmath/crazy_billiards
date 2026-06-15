@@ -31,6 +31,10 @@ public class BallObservable {
         changed = false;
     }
 
+    public synchronized LinkedList<BallObserver> getObservers() {
+        return new LinkedList<>(obs);
+    }
+
     public void notifyObservers(Object arg) {
         LinkedList<BallObserver> copy;
         synchronized (this) {
