@@ -209,8 +209,8 @@ otherloop:  for (Ball other : ball_group) {
                     double bi_push = bi_blocked ? 0 : (bj_blocked ? overlap : half);
                     double bj_push = bj_blocked ? 0 : (bi_blocked ? overlap : half);
 
-                    if (bi_push > 0) bi.nextLocation((int) Math.round(nx * bi_push), (int) Math.round(ny * bi_push));
-                    if (bj_push > 0) bj.nextLocation((int) Math.round(-nx * bj_push), (int) Math.round(-ny * bj_push));
+                    if (bi_push > 0) bi.nextLocation(nx * bi_push, ny * bi_push);
+                    if (bj_push > 0) bj.nextLocation(-nx * bj_push, -ny * bj_push);
 
                     if (bi_push > 0) {
                         double vi_n = bi.getVelocity().getX() * nx + bi.getVelocity().getY() * ny;

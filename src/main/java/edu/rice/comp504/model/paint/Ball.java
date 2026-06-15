@@ -16,7 +16,7 @@ import edu.rice.comp504.model.BallObserver;
 public class Ball implements BallObserver {
 
     private int radius;
-    private Point loc;
+    private Point2D.Double loc;
     private Point2D.Double vel;
     private double frictionFactor = 1.0;
     private String color;
@@ -29,7 +29,7 @@ public class Ball implements BallObserver {
      * @param radius  The paint radius.
      * @param vel The paint velocity.
      */
-    public Ball(Point loc, int radius, Point2D.Double vel, String color, IUpdateStrategy uStrategy, IInteractStrategy iStrategy) {
+    public Ball(Point2D.Double loc, int radius, Point2D.Double vel, String color, IUpdateStrategy uStrategy, IInteractStrategy iStrategy) {
         this.loc = loc;
         this.radius = radius;
         this.vel = vel;
@@ -40,13 +40,13 @@ public class Ball implements BallObserver {
 
     public int getRadius() { return this.radius; }
     public void setRadius(int r) { this.radius = r; }
-    public Point getLocation() { return this.loc; }
-    public void setLocation(Point loc) { this.loc = loc; }
+    public Point2D.Double getLocation() { return this.loc; }
+    public void setLocation(Point2D.Double loc) { this.loc = loc; }
     public String getColor() { return this.color; }
     public void setColor(String color) { this.color = color; }
 
     public void nextLocation(double velX, double velY) {
-        this.setLocation(new Point((int) Math.round(this.loc.getX() + velX), (int) Math.round(this.loc.getY() + velY)));
+        this.setLocation(new Point2D.Double(this.loc.getX() + velX, this.loc.getY() + velY));
     }
 
     public Point2D.Double getVelocity() { return this.vel; }
@@ -89,7 +89,7 @@ public class Ball implements BallObserver {
             if (sides_hit.contains("b")) { vel_y = Math.abs(vel_y) * -1; loc_y = dims.getY() - radius; }
 
             setVelocity(new Point2D.Double(vel_x, vel_y));
-            setLocation(new Point((int) loc_x, (int) loc_y));
+            setLocation(new Point2D.Double(loc_x, loc_y));
             return true;
         }
         return false;
@@ -101,8 +101,8 @@ public class Ball implements BallObserver {
      * Detects collision between two balls in the ball world.
      */
     public boolean ballCollision(Ball other, DispatchAdapter dad) {
-        double distance = Math.sqrt(Math.pow(this.loc.getX() - other.getLocation().getX(), 2)
-                + Math.pow(this.loc.getY() - other.getLocation().getY(), 2));
+        double distance = Math.sqrt(Math.pow(this.loc.x - other.getLocation().getX(), 2)
+                + Math.pow(this.loc.y - other.getLocation().getY(), 2));
         boolean collision = false;
         if (distance <= this.radius + other.getRadius()) collision = true;
 
@@ -112,19 +112,19 @@ public class Ball implements BallObserver {
             double other_vel_x = other.vel.getX();
             double other_vel_y = other.vel.getY();
 
-            if (this.loc.getX() < other.getLocation().getX()) {
+            if (this.loc.x < other.getLocation().getX()) {
                 if (this_vel_x > 0) this_vel_x *= -1;
                 if (other_vel_x < 0) other_vel_x *= -1;
             }
-            if (this.loc.getX() > other.getLocation().getX()) {
+            if (this.loc.x > other.getLocation().getX()) {
                 if (this_vel_x < 0) this_vel_x *= -1;
                 if (other_vel_x > 0) other_vel_x *= -1;
             }
-            if (this.loc.getY() < other.getLocation().getY()) {
+            if (this.loc.y < other.getLocation().getY()) {
                 if (this_vel_y > 0) this_vel_y *= -1;
                 if (other_vel_y < 0) other_vel_y *= -1;
             }
-            if (this.loc.getY() > other.getLocation().getY()) {
+            if (this.loc.y > other.getLocation().getY()) {
                 if (this_vel_y < 0) this_vel_y *= -1;
                 if (other_vel_y > 0) other_vel_y *= -1;
             }

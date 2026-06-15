@@ -1,6 +1,7 @@
 package edu.rice.comp504.model;
 
 import edu.rice.comp504.model.cmd.DeletionCommand;
+import edu.rice.comp504.model.cmd.ImpulseCommand;
 import edu.rice.comp504.model.cmd.SwitchInteractStrategyCommand;
 import edu.rice.comp504.model.cmd.SwitchUpdateStrategyCommand;
 import edu.rice.comp504.model.cmd.UpdateCommand;
@@ -239,6 +240,15 @@ public class DispatchAdapter extends BallObservable {
     }
 
     /**
+     * Apply an impulse at canvas position (x, y) in direction angle with the given strength.
+     * Only the ball whose area contains (x, y) is affected.
+     */
+    public void applyImpulse(double x, double y, double angle, double strength) {
+        setChanged();
+        notifyObservers(new ImpulseCommand(x, y, angle, strength));
+    }
+
+    /**
      * helper for the ball constructor; makes random values
      * @param uStrategy
      * @param iStrategy
@@ -246,7 +256,7 @@ public class DispatchAdapter extends BallObservable {
      */
     public Ball makeBall(IUpdateStrategy uStrategy, IInteractStrategy iStrategy) {
         Ball ball = new Ball(
-                new Point((int) Math.floor(Math.random() * this.dims.x), (int) Math.floor(Math.random() * this.dims.y)),
+                new Point2D.Double(Math.random() * this.dims.x, Math.random() * this.dims.y),
                 (int) Math.floor(Math.random() * 40 + 10),
                 new Point2D.Double(Math.floor(Math.random() * 25 + 1), Math.floor(Math.random() * 25) + 1),
                 "rgb(" + (int)Math.floor(Math.random()*255)+","+ (int)Math.floor(Math.random()*255)+ ","
@@ -254,7 +264,7 @@ public class DispatchAdapter extends BallObservable {
         String upName = uStrategy.getName();
         if (!upName.contains("wander") && !upName.contains("mowthelawn")
                 && !upName.contains("cornergravity") && !upName.contains("drag")) {
-            ball.setFrictionFactor(0.99);
+            ball.setFrictionFactor(0.995);
         }
         return ball;
     }
