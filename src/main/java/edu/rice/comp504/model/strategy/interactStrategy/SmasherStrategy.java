@@ -60,7 +60,7 @@ System.out.println("hi from smasher 1");
                 double angle = 3.14159 / 3 * i + 0.5 * b;
                 double vector_x = (b + 1) * 10 * Math.cos(angle);
                 double vector_y = (b + 1) * 10 * Math.sin(angle);
-                Point new_loc = new Point((int) (destx + vector_x), (int) (desty + vector_y));
+                Point2D.Double new_loc = new Point2D.Double(destx + vector_x, desty + vector_y);
                 Point2D.Double new_vel = new Point2D.Double(2 * destvelx + 0.5 * vector_x, 2 * destvely + 0.5 * vector_y);
                 this.resulting_balls.add(new Ball(new_loc, 2, new_vel, dest.getColor(),
                         new StraightToHellStrategy(6),

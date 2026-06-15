@@ -3,7 +3,7 @@ package edu.rice.comp504.model.strategy.updateStrategy;
 
 import edu.rice.comp504.model.paint.Ball;
 
-import java.awt.*;
+import java.awt.geom.Point2D;
 
 /**
  * The deja vu strategy will cause the ball to backtrack by changing its position by some
@@ -38,9 +38,9 @@ public class DejaVuStrategy implements IUpdateStrategy {
         context.nextLocation(context.getVelocity().getX(), context.getVelocity().getY());
         jump_clock++;
         if (jump_clock > 10) {
-            Point newloc = context.getLocation();
-            newloc = new Point((int)(newloc.getX() - 4 * context.getVelocity().getX()), (int)(newloc.getY() - 4 * context.getVelocity().getY()));
-            context.setLocation(newloc);
+            context.setLocation(new Point2D.Double(
+                    context.getLocation().getX() - 4 * context.getVelocity().getX(),
+                    context.getLocation().getY() - 4 * context.getVelocity().getY()));
             jump_clock = 0;
         }
     }

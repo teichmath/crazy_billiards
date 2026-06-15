@@ -1,7 +1,7 @@
 package edu.rice.comp504.model.strategy.updateStrategy;
 import edu.rice.comp504.model.paint.Ball;
 
-import java.awt.*;
+import java.awt.geom.Point2D;
 
 /**
  * Wrapper for use with the Blob interact strategy. Balls eaten by a blob have their update strategies wrapped in this.
@@ -9,7 +9,7 @@ import java.awt.*;
 public class EatenWrapperUpdateStrategy extends IUpdateWrapperStrategy {
 
     private Ball host_blob;
-    private Point relative_position;
+    private Point2D.Double relative_position;
 
     /**
      * The constructor
@@ -17,7 +17,7 @@ public class EatenWrapperUpdateStrategy extends IUpdateWrapperStrategy {
      * @param host
      * @param rp
      */
-    public EatenWrapperUpdateStrategy(IUpdateStrategy wrapped_strategy, Ball host, Point rp) {
+    public EatenWrapperUpdateStrategy(IUpdateStrategy wrapped_strategy, Ball host, Point2D.Double rp) {
         this.wrapped_strategy = wrapped_strategy;
         this.host_blob = host;
         this.relative_position = rp;
@@ -40,8 +40,8 @@ public class EatenWrapperUpdateStrategy extends IUpdateWrapperStrategy {
                 "this relative position at "+this.relative_position.getX()+", "+this.relative_position.getY());
         if(this.host_blob.getRadius() <= 2) context.setRadius(0);
 
-        context.setLocation(new Point((int)(this.host_blob.getLocation().getX() + this.relative_position.getX()),
-                (int)(this.host_blob.getLocation().getY() + this.relative_position.getY())));
+        context.setLocation(new Point2D.Double(this.host_blob.getLocation().getX() + this.relative_position.getX(),
+                this.host_blob.getLocation().getY() + this.relative_position.getY()));
     }
 
 }

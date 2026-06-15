@@ -5,6 +5,7 @@ import edu.rice.comp504.model.strategy.updateStrategy.EatenWrapperUpdateStrategy
 import edu.rice.comp504.model.strategy.updateStrategy.UpdateStrategyUnwrapper;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
 
 /**
  * The ball with this strategy will be a transparent ball that grows as it eats other balls, which will be drawn inside it.
@@ -103,17 +104,17 @@ public class BlobStrategy implements IInteractStrategy {
      */
     public void addEaten(Ball a, Ball b) {
         //find a relative position inside the blob for the new follower
-        Point new_relative_pos = new Point(0,0);
+        Point2D.Double new_relative_pos = new Point2D.Double(0, 0);
         if(number_of_eatens > 0) {
 //            Ball random_eaten = eatens.get((int)(Math.random()*(eatens.size() - 1)));
 //            double angle = Math.random()*2*3.14159;
 //            EatenWrapperUpdateStrategy existing_strategy = (EatenWrapperUpdateStrategy) random_eaten.getUpdateStrategy();
-//            new_relative_pos = new Point((int)(existing_strategy.getRelativePos().getX()
-//                    + (b.getRadius() + random_eaten.getRadius())*Math.cos(angle)),
-//                    (int)(existing_strategy.getRelativePos().getY()
-//                    + (b.getRadius() + random_eaten.getRadius())*Math.sin(angle)));
-            new_relative_pos = new Point((int)(10*number_of_eatens*Math.cos(.1 + number_of_eatens)),
-                    (int)(10*number_of_eatens*Math.sin(.1 + number_of_eatens)));
+//            new_relative_pos = new Point2D.Double(existing_strategy.getRelativePos().getX()
+//                    + (b.getRadius() + random_eaten.getRadius())*Math.cos(angle),
+//                    existing_strategy.getRelativePos().getY()
+//                    + (b.getRadius() + random_eaten.getRadius())*Math.sin(angle));
+            new_relative_pos = new Point2D.Double(10*number_of_eatens*Math.cos(.1 + number_of_eatens),
+                    10*number_of_eatens*Math.sin(.1 + number_of_eatens));
 
         }
         b.setUpdateStrategy(new EatenWrapperUpdateStrategy(b.getUpdateStrategy(), a, new_relative_pos));
