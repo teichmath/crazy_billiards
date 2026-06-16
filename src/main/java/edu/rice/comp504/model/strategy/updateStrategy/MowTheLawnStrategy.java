@@ -24,6 +24,9 @@ public class MowTheLawnStrategy implements IUpdateStrategy {
     private double targetAdvancePos;
     private int lastSetSweepVelSign;
 
+    private int knockedFrames = 0;
+    private static final int KNOCKED_DURATION = 30;  // ~3 s at 100 ms tick
+
     public MowTheLawnStrategy(Point dims) {
         this.dims = dims;
         this.horizontal = Math.random() < 0.5;
@@ -43,6 +46,39 @@ public class MowTheLawnStrategy implements IUpdateStrategy {
 
     public void updateState(Ball context) {
         if (!initialized) initialize(context);
+
+        double vx = context.getVelocity().getX();
+        double vy = context.getVelocity().getY();
+        double speed = Math.sqrt(vx * vx + vy * vy);
+
+        // Detect external cue-stick knock: speed well above what the strategy would set
+        if (speed > sweepSpeed * 2.5 + 10) {
+            knockedFrames = KNOCKED_DURATION;
+        }
+
+        if (knockedFrames > 0) {
+            // Decay velocity (temporary friction) so ball eventually slows to lawn-mowing speed
+            vx *= 0.93;
+            vy *= 0.93;
+
+            // Gentle correction back toward the target row on the advance axis
+            double advancePos = horizontal ? context.getLocation().getY() : context.getLocation().getX();
+            double advanceDiff = targetAdvancePos - advancePos;
+            double correction = Math.max(-3, Math.min(3, advanceDiff * 0.15));
+            if (horizontal) vy += correction;
+            else            vx += correction;
+
+            context.setVelocity(new Point2D.Double(vx, vy));
+
+            // Keep sweepDir in sync so resume is clean
+            double sweepV = horizontal ? vx : vy;
+            if (Math.abs(sweepV) > 0.5) sweepDir = (int) Math.signum(sweepV);
+            lastSetSweepVelSign = sweepDir;
+
+            knockedFrames--;
+            context.nextLocation(context.getVelocity().getX(), context.getVelocity().getY());
+            return;
+        }
 
         int ctxSweepVel = horizontal ? (int) context.getVelocity().getX() : (int) context.getVelocity().getY();
 
