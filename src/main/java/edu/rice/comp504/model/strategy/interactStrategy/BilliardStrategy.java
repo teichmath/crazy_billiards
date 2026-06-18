@@ -52,33 +52,30 @@ public class BilliardStrategy implements IInteractStrategy {
      */
     public void interact(Ball src, Ball dest) {
 
-        //we project the velocity vector of the src ball onto the vector from the src center to the dest center.
-        //this is the force we apply to dest, and in reverse, to src.
+        // Unit normal from src center toward dest center
+        double nx = dest.getLocation().getX() - src.getLocation().getX();
+        double ny = dest.getLocation().getY() - src.getLocation().getY();
+        double dist = Math.sqrt(nx * nx + ny * ny);
+        if (dist < 0.001) return;
+        nx /= dist;
+        ny /= dist;
 
-        double force_vector_x = dest.getLocation().getX() - src.getLocation().getX();
-        double force_vector_y = dest.getLocation().getY() - src.getLocation().getY();
-        double dot_product_for_proj = src.getVelocity().getX() * force_vector_x + src.getVelocity().getY() * force_vector_y;
-        force_vector_x = force_vector_x * dot_product_for_proj / Math.pow((src.getRadius() + dest.getRadius()), 2);
-        force_vector_y = force_vector_y * dot_product_for_proj / Math.pow((src.getRadius() + dest.getRadius()), 2);
+        // Project src velocity onto normal; skip if src is already moving away from dest
+        double proj = src.getVelocity().getX() * nx + src.getVelocity().getY() * ny;
+        if (proj <= 0) return;
 
         for (int i = 0; i < 2; i++) {
-            int a;
-            Ball b;
-            if (i == 0) {
-                a = -1;
-                b = src;
-            } else {
-                a = 1;
-                b = dest;
-            }
+            int a = (i == 0) ? -1 : 1;
+            Ball b = (i == 0) ? src : dest;
             if (b.getInteractStrategy().getName().contains("billiard")) {
                 BilliardStrategy strat = (BilliardStrategy)
                         my_int_unwrapper.getBaseInteractStrategy(b, "billiard");
-                strat.addForce(a * force_vector_x, a * force_vector_y);
-
-            } else b.setVelocity(new Point2D.Double(
-                    b.getVelocity().getX() + force_vector_x,
-                    b.getVelocity().getY() + force_vector_y));
+                strat.addForce(a * proj * nx, a * proj * ny);
+            } else {
+                b.setVelocity(new Point2D.Double(
+                        b.getVelocity().getX() + a * proj * nx,
+                        b.getVelocity().getY() + a * proj * ny));
+            }
         }
 
     }

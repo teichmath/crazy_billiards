@@ -129,7 +129,8 @@ public class DispatchAdapter extends BallObservable {
         boolean switcher = retrieveSwitch(body_words);
         IUpdateStrategy up_str = retrieveUpdateStrategy(body_words, switcher);
         IInteractStrategy int_str = retrieveInteractStrategy(body_words, switcher);
-        Ball my_ball = makeBall(up_str, int_str);
+        String colorOverride = retrieveColor(body_words);
+        Ball my_ball = makeBall(up_str, int_str, colorOverride);
         addObserver(my_ball);
         return my_ball;
 
@@ -296,18 +297,46 @@ public class DispatchAdapter extends BallObservable {
     }
 
     /**
-     * helper for the ball constructor; makes random values
-     * @param uStrategy
-     * @param iStrategy
-     * @return A new ball
+     * Resolve a color name keyword to an rgb string, or return null for random.
      */
+    public String retrieveColor(String[] words) {
+        for (int i = 0; i < words.length - 1; i++) {
+            if (words[i].equals("color")) {
+                switch (words[i + 1].toLowerCase()) {
+                    case "white":  return "rgb(255,255,255)";
+                    case "red":    return "rgb(210,50,50)";
+                    case "orange": return "rgb(230,130,30)";
+                    case "yellow": return "rgb(240,210,30)";
+                    case "green":  return "rgb(50,180,50)";
+                    case "blue":   return "rgb(50,100,210)";
+                    case "purple": return "rgb(150,50,210)";
+                    case "black":  return "rgb(20,20,20)";
+                    default:       return null;
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Convenience overload — random color. */
     public Ball makeBall(IUpdateStrategy uStrategy, IInteractStrategy iStrategy) {
+        return makeBall(uStrategy, iStrategy, null);
+    }
+
+    /**
+     * Build a new ball with random position/velocity. colorOverride is an rgb string;
+     * pass null for a fully random color.
+     */
+    public Ball makeBall(IUpdateStrategy uStrategy, IInteractStrategy iStrategy, String colorOverride) {
+        String color = (colorOverride != null) ? colorOverride :
+                "rgb(" + (int)Math.floor(Math.random()*255) + ","
+                       + (int)Math.floor(Math.random()*255) + ","
+                       + (int)Math.floor(Math.random()*255) + ")";
         Ball ball = new Ball(
                 new Point2D.Double(Math.random() * this.dims.x, Math.random() * this.dims.y),
                 (int) Math.floor(Math.random() * 40 + 10),
                 new Point2D.Double(Math.floor(Math.random() * 25 + 1), Math.floor(Math.random() * 25) + 1),
-                "rgb(" + (int)Math.floor(Math.random()*255)+","+ (int)Math.floor(Math.random()*255)+ ","
-                        +(int)Math.floor(Math.random()*255)+")", uStrategy, iStrategy);
+                color, uStrategy, iStrategy);
         String upName = uStrategy.getName();
         if (!upName.contains("wander") && !upName.contains("mowthelawn")
                 && !upName.contains("cornergravity") && !upName.contains("drag")) {
