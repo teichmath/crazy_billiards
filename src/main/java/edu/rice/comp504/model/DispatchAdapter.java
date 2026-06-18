@@ -12,6 +12,7 @@ import edu.rice.comp504.model.strategy.updateStrategy.*;
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.LinkedList;
+import java.util.List;
 
 
 
@@ -27,6 +28,7 @@ public class DispatchAdapter extends BallObservable {
     private InteractStrategyFactory my_intfact;
     public int break_it;
     public int frameCount;
+    private LinkedList<Pocket> pockets = new LinkedList<>();
 
     /**
      * Constructor
@@ -62,8 +64,10 @@ public class DispatchAdapter extends BallObservable {
      */
     public void updateBallWorld() {
 
-        //delete and add observers as necessary
-
+        // Tick pocket flash counters first so flash lasts exactly one outgoing frame
+        synchronized (this) {
+            for (Pocket p : pockets) p.tickFlash();
+        }
 
         setChanged();
         notifyObservers(new UpdateCommand(dims, this, countObservers()));
@@ -71,6 +75,42 @@ public class DispatchAdapter extends BallObservable {
         setChanged();
         notifyObservers(new DeletionCommand(dims, this));
 
+        // Check whether any ball has fallen into a pocket
+        LinkedList<Pocket> snap;
+        synchronized (this) { snap = new LinkedList<>(pockets); }
+
+        List<BallObserver> toRemove = new LinkedList<>();
+        for (BallObserver o : getObservers()) {
+            Ball ball = (Ball) o;
+            for (Pocket pocket : snap) {
+                if (pocket.canSwallow(ball)) {
+                    pocket.startFlash(ball.getColor());
+                    toRemove.add(o);
+                    break;
+                }
+            }
+        }
+        for (BallObserver o : toRemove) deleteObserver(o);
+    }
+
+    /**
+     * Add a pocket at canvas position (x, y) with the given radius.
+     * Validates that the center is within bounds and does not overlap any existing pocket.
+     * @return true if the pocket was added
+     */
+    public synchronized boolean addPocket(double x, double y, int radius) {
+        if (x < 0 || x > dims.x || y < 0 || y > dims.y) return false;
+        for (Pocket p : pockets) {
+            double dx = p.x - x, dy = p.y - y;
+            if (Math.sqrt(dx * dx + dy * dy) < p.radius + radius) return false;
+        }
+        pockets.add(new Pocket(x, y, radius));
+        return true;
+    }
+
+    /** Remove all pockets. */
+    public synchronized void clearPockets() {
+        pockets.clear();
     }
 
     /**

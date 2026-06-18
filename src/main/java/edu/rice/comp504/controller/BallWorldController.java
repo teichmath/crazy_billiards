@@ -114,6 +114,30 @@ public class BallWorldController {
             return "{}";
         });
 
+        post("/pocket", (request, response) -> {
+            String body = request.body();
+            DispatchAdapter dis = getWorld(request);
+            double x = 0, y = 0;
+            int radius = 20;
+            for (String pair : body.split("&")) {
+                String[] kv = pair.split("=");
+                if (kv.length != 2) continue;
+                switch (kv[0]) {
+                    case "x":      x      = Double.parseDouble(kv[1]); break;
+                    case "y":      y      = Double.parseDouble(kv[1]); break;
+                    case "radius": radius = Integer.parseInt(kv[1]);   break;
+                }
+            }
+            boolean added = dis.addPocket(x, y, radius);
+            return "{\"added\":" + added + "}";
+        });
+
+        get("/clearpockets", (request, response) -> {
+            DispatchAdapter dis = getWorld(request);
+            dis.clearPockets();
+            return "{}";
+        });
+
         get("/canvas/:width/:height", (request, response) -> {
             DispatchAdapter dis = getWorld(request);
             int width = Integer.valueOf(request.params(":width"));
