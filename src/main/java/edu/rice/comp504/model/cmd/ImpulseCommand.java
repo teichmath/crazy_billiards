@@ -1,13 +1,15 @@
 package edu.rice.comp504.model.cmd;
 
+import edu.rice.comp504.model.PhysicsConfig;
 import edu.rice.comp504.model.paint.Ball;
 
 import java.awt.geom.Point2D;
 
 /**
  * Applies a cue impulse to any ball whose area contains the given point.
- * Velocity scales with inverse mass (radius^3); side-spin is set from the
- * horizontal offset (spin in [-1, 1] maps to ±R/2 off-center hit).
+ * Velocity scales with inverse mass (radius^3). Side-spin is derived from the
+ * perpendicular distance between the ball's centre and the cue's line of action:
+ * a centre-hit produces no spin; an off-centre hit produces ω_z = −5vd/(2R²).
  */
 public class ImpulseCommand implements IBallCmd {
 
@@ -17,35 +19,35 @@ public class ImpulseCommand implements IBallCmd {
     private final double y;
     private final double angle;
     private final double strength;
-    private final double spin; // normalised offset: -1 (full left) to +1 (full right)
 
-    public ImpulseCommand(double x, double y, double angle, double strength, double spin) {
+    public ImpulseCommand(double x, double y, double angle, double strength) {
         this.x = x;
         this.y = y;
         this.angle = angle;
         this.strength = strength;
-        this.spin = spin;
     }
 
     public void execute(Ball context) throws InterruptedException {
-        double dx = context.getLocation().getX() - x;
-        double dy = context.getLocation().getY() - y;
+        double cx = context.getLocation().getX();
+        double cy = context.getLocation().getY();
+        double dx = cx - x;
+        double dy = cy - y;
         if (Math.sqrt(dx * dx + dy * dy) > context.getRadius()) return;
 
         double R = context.getRadius();
-        // Heavier (larger) balls receive less speed from the same force
         double massScale = Math.pow(R_REF / R, 3);
-        double speed = strength * 5.0 * massScale;
+        double speed = strength * PhysicsConfig.get().cueScale * massScale;
 
-        // Set velocity (cue replaces current motion)
         context.setVelocity(new Point2D.Double(
                 Math.cos(angle) * speed,
                 Math.sin(angle) * speed));
 
-        // Side spin from off-centre hit: omega_z = -(5 * v * d) / (2 * R^2)
-        double offset = spin * R * 0.5; // max offset = R/2
-        double omegaZ = -(5.0 * speed * offset) / (2.0 * R * R);
+        // Perpendicular distance from ball centre to cue line (2D cross product).
+        // This is the offset that generates side-spin naturally from the geometry.
+        double d = dx * Math.sin(angle) - dy * Math.cos(angle);
+        d = Math.max(-R * 0.9, Math.min(R * 0.9, d)); // can't hit beyond the edge
+        double omegaZ = -(5.0 * speed * d) / (2.0 * R * R);
         context.setOmegaZ(omegaZ);
-        context.setOmegaRoll(0.0); // starts sliding, not rolling
+        context.setOmegaRoll(0.0);
     }
 }

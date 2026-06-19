@@ -1,5 +1,6 @@
 package edu.rice.comp504.model.strategy.interactStrategy;
 
+import edu.rice.comp504.model.PhysicsConfig;
 import edu.rice.comp504.model.paint.Ball;
 
 import java.awt.geom.Point2D;
@@ -79,8 +80,8 @@ public class BilliardStrategy implements IInteractStrategy {
         }
 
         // Throw: src's side-spin deflects dest tangentially
-        final double MU_B = 0.04, ALPHA_B = 0.5;
-        double vThrow = MU_B * proj - ALPHA_B * src.getRadius() * src.getOmegaZ();
+        PhysicsConfig cfg = PhysicsConfig.get();
+        double vThrow = cfg.muB * proj - cfg.alphaB * src.getRadius() * src.getOmegaZ();
         double tx = -ny, ty = nx; // tangent perpendicular to normal
         if (dest.getInteractStrategy().getName().contains("billiard")) {
             BilliardStrategy destStrat = (BilliardStrategy)

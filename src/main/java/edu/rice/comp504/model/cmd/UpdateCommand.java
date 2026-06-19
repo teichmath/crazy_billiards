@@ -1,6 +1,7 @@
 package edu.rice.comp504.model.cmd;
 
 import edu.rice.comp504.model.DispatchAdapter;
+import edu.rice.comp504.model.PhysicsConfig;
 import edu.rice.comp504.model.paint.Ball;
 import edu.rice.comp504.model.strategy.interactStrategy.*;
 import edu.rice.comp504.model.strategy.updateStrategy.FollowerWrapperUpdateStrategy;
@@ -241,18 +242,16 @@ otherloop:  for (Ball other : ball_group) {
         }
     }
 
-    // Physics constants (game units: pixels, frames)
-    private static final double G_EFF  = 1.0;   // effective deceleration (px/frame²)
-    private static final double MU_K   = 0.3;   // kinetic (sliding) friction
-    private static final double MU_R   = 0.1;   // rolling friction
-    private static final double MU_S   = 0.05;  // side-spin friction
-
     /**
      * Applies sliding→rolling transition and side-spin decay.
+     * Reads all constants live from PhysicsConfig so slider changes take effect immediately.
      * Only runs for balls that opted into friction (frictionFactor < 1.0).
      */
     private void applyPhysics(Ball ball) {
         if (ball.getFrictionFactor() >= 1.0) return;
+
+        PhysicsConfig cfg = PhysicsConfig.get();
+        double G_EFF = cfg.gEff, MU_K = cfg.muK, MU_R = cfg.muR, MU_S = cfg.muS;
 
         double vx = ball.getVelocity().getX();
         double vy = ball.getVelocity().getY();
@@ -288,7 +287,7 @@ otherloop:  for (Ball other : ball_group) {
 
         // Side-spin decays independently (pivoting friction against cloth)
         if (Math.abs(omegaZ) > 0.001) {
-            double alphaZ   = -Math.signum(omegaZ) * 5.0 * MU_S * G_EFF / (2.0 * R);
+            double alphaZ     = -Math.signum(omegaZ) * 5.0 * MU_S * G_EFF / (2.0 * R);
             double nextOmegaZ = omegaZ + alphaZ;
             omegaZ = (Math.signum(nextOmegaZ) != Math.signum(omegaZ)) ? 0.0 : nextOmegaZ;
         }

@@ -1,6 +1,7 @@
 package edu.rice.comp504.controller;
 
 import edu.rice.comp504.model.DispatchAdapter;
+import edu.rice.comp504.model.PhysicsConfig;
 import com.google.gson.Gson;
 import edu.rice.comp504.model.paint.Ball;
 import spark.Request;
@@ -99,7 +100,7 @@ public class BallWorldController {
         post("/impulse", (request, response) -> {
             String body = request.body();
             DispatchAdapter dis = getWorld(request);
-            double x = 0, y = 0, angle = 0, strength = 5, spin = 0;
+            double x = 0, y = 0, angle = 0, strength = 5;
             for (String pair : body.split("&")) {
                 String[] kv = pair.split("=");
                 if (kv.length != 2) continue;
@@ -108,10 +109,9 @@ public class BallWorldController {
                     case "y":        y        = Double.parseDouble(kv[1]); break;
                     case "angle":    angle    = Double.parseDouble(kv[1]); break;
                     case "strength": strength = Double.parseDouble(kv[1]); break;
-                    case "spin":     spin     = Double.parseDouble(kv[1]); break;
                 }
             }
-            dis.applyImpulse(x, y, angle, strength, spin);
+            dis.applyImpulse(x, y, angle, strength);
             return "{}";
         });
 
@@ -131,6 +131,32 @@ public class BallWorldController {
             }
             boolean added = dis.addPocket(x, y, radius);
             return "{\"added\":" + added + "}";
+        });
+
+        post("/config", (request, response) -> {
+            PhysicsConfig cfg = PhysicsConfig.get();
+            for (String pair : request.body().split("&")) {
+                String[] kv = pair.split("=");
+                if (kv.length != 2) continue;
+                try {
+                    double v = Double.parseDouble(kv[1]);
+                    switch (kv[0]) {
+                        case "gEff":     cfg.gEff     = v; break;
+                        case "muK":      cfg.muK      = v; break;
+                        case "muR":      cfg.muR      = v; break;
+                        case "muS":      cfg.muS      = v; break;
+                        case "eps":      cfg.eps      = v; break;
+                        case "muC":      cfg.muC      = v; break;
+                        case "gamma":    cfg.gamma    = v; break;
+                        case "beta":     cfg.beta     = v; break;
+                        case "eBall":    cfg.eBall    = v; break;
+                        case "muB":      cfg.muB      = v; break;
+                        case "alphaB":   cfg.alphaB   = v; break;
+                        case "cueScale": cfg.cueScale = v; break;
+                    }
+                } catch (NumberFormatException ignored) {}
+            }
+            return "{}";
         });
 
         get("/clearpockets", (request, response) -> {

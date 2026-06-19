@@ -281,13 +281,12 @@ public class DispatchAdapter extends BallObservable {
     }
 
     /**
-     * Apply a cue impulse. spin is a normalised side-spin offset in [-1, 1]
-     * (negative = left English, positive = right English).
+     * Apply a cue impulse. Side-spin is derived automatically from the geometry
+     * (perpendicular distance between the ball centre and the cue line).
      */
-    public void applyImpulse(double x, double y, double angle, double strength, double spin) {
-        ImpulseCommand cmd = new ImpulseCommand(x, y, angle, strength, spin);
-        System.out.println("impulse x=" + x + " y=" + y + " angle=" + angle
-                + " strength=" + strength + " spin=" + spin);
+    public void applyImpulse(double x, double y, double angle, double strength) {
+        ImpulseCommand cmd = new ImpulseCommand(x, y, angle, strength);
+        System.out.println("impulse x=" + x + " y=" + y + " angle=" + angle + " strength=" + strength);
         for (BallObserver o : getObservers()) {
             try {
                 cmd.execute((Ball) o);
@@ -295,10 +294,6 @@ public class DispatchAdapter extends BallObservable {
                 Thread.currentThread().interrupt();
             }
         }
-    }
-
-    public void applyImpulse(double x, double y, double angle, double strength) {
-        applyImpulse(x, y, angle, strength, 0.0);
     }
 
     /**

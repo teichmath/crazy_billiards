@@ -1,6 +1,7 @@
 package edu.rice.comp504.model.paint;
 
 import edu.rice.comp504.model.DispatchAdapter;
+import edu.rice.comp504.model.PhysicsConfig;
 import edu.rice.comp504.model.cmd.IBallCmd;
 import edu.rice.comp504.model.strategy.interactStrategy.IInteractStrategy;
 import edu.rice.comp504.model.strategy.updateStrategy.IUpdateStrategy;
@@ -79,7 +80,8 @@ public class Ball implements BallObserver {
      * beta = spin reduction fraction.
      */
     public boolean wallCollision(Point dims) {
-        final double EPS = 0.7, MU_C = 0.1, GAMMA = 0.15, BETA = 0.5;
+        PhysicsConfig cfg = PhysicsConfig.get();
+        final double EPS = cfg.eps, MU_C = cfg.muC, GAMMA = cfg.gamma, BETA = cfg.beta;
         boolean hit = false;
         double vx = vel.getX(), vy = vel.getY();
         double x = loc.getX(), y = loc.getY();
@@ -156,13 +158,13 @@ public class Ball implements BallObserver {
         double mSum = mA + mB;
 
         // Normal impulse (coefficient of restitution = 0.95)
-        double e = 0.95;
-        double J = (1 + e) * mA * mB / mSum * dvn;
+        PhysicsConfig cfg = PhysicsConfig.get();
+        double J = (1 + cfg.eBall) * mA * mB / mSum * dvn;
         vel       = new Point2D.Double(vel.x       - J / mA * nx, vel.y       - J / mA * ny);
         other.vel = new Point2D.Double(other.vel.x + J / mB * nx, other.vel.y + J / mB * ny);
 
         // Throw effect from this ball's side spin onto other
-        final double MU_B = 0.04, ALPHA_B = 0.5;
+        final double MU_B = cfg.muB, ALPHA_B = cfg.alphaB;
         double vNormal = J / mB; // speed other gained along n
         double tx = -ny, ty = nx; // tangent direction
         double vThrow = MU_B * vNormal - ALPHA_B * radius * omegaZ;
