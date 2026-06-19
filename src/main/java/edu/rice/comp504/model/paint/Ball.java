@@ -19,6 +19,8 @@ public class Ball implements BallObserver {
     private Point2D.Double loc;
     private Point2D.Double vel;
     private double frictionFactor = 1.0;
+    private double omegaZ = 0.0;    // side spin (rad/frame), + = CCW from above
+    private double omegaRoll = 0.0; // rolling angular speed (rad/frame); pure roll = |v|/R
     private String color;
     private transient IUpdateStrategy uStrategy;
     private transient IInteractStrategy iStrategy;
@@ -55,6 +57,11 @@ public class Ball implements BallObserver {
     public double getFrictionFactor() { return frictionFactor; }
     public void setFrictionFactor(double f) { frictionFactor = f; }
 
+    public double getOmegaZ() { return omegaZ; }
+    public void setOmegaZ(double oz) { omegaZ = oz; }
+    public double getOmegaRoll() { return omegaRoll; }
+    public void setOmegaRoll(double or) { omegaRoll = or; }
+
     public IUpdateStrategy getUpdateStrategy() { return this.uStrategy; }
     public void setUpdateStrategy(IUpdateStrategy strategy) { this.uStrategy = strategy; }
     public IInteractStrategy getInteractStrategy() { return this.iStrategy; }
@@ -67,72 +74,103 @@ public class Ball implements BallObserver {
     }
 
     /**
-     * Reports collision between a shape and a wall in the shape world.
-     * @param dims  The canvas dimensions
+     * Cushion bounce: reflects normal velocity, applies friction and spin transfer.
+     * eps = restitution, mu_c = cushion friction, gamma = spin→velocity efficiency,
+     * beta = spin reduction fraction.
      */
     public boolean wallCollision(Point dims) {
-        String sides_hit = "";
-        if (radius - getLocation().getX() > 0) sides_hit += "l";
-        if (getLocation().getX() - (dims.getX() - radius) > 0) sides_hit += "r";
-        if (radius - getLocation().getY() > 0) sides_hit += "t";
-        if (getLocation().getY() - (dims.getY() - radius) > 0) sides_hit += "b";
+        final double EPS = 0.7, MU_C = 0.1, GAMMA = 0.15, BETA = 0.5;
+        boolean hit = false;
+        double vx = vel.getX(), vy = vel.getY();
+        double x = loc.getX(), y = loc.getY();
+        double oZ = omegaZ;
 
-        if (sides_hit.length() > 0) {
-            double vel_x = vel.getX();
-            double vel_y = vel.getY();
-            double loc_x = getLocation().getX();
-            double loc_y = getLocation().getY();
-
-            if (sides_hit.contains("l")) { vel_x = Math.abs(vel_x); loc_x = radius; }
-            if (sides_hit.contains("r")) { vel_x = Math.abs(vel_x) * -1; loc_x = dims.getX() - radius; }
-            if (sides_hit.contains("t")) { vel_y = Math.abs(vel_y); loc_y = radius; }
-            if (sides_hit.contains("b")) { vel_y = Math.abs(vel_y) * -1; loc_y = dims.getY() - radius; }
-
-            setVelocity(new Point2D.Double(vel_x, vel_y));
-            setLocation(new Point2D.Double(loc_x, loc_y));
-            return true;
+        // Horizontal cushion (top / bottom): normal = Y, tangential = X
+        if (y - radius < 0 || y + radius > dims.y) {
+            double vn = vy;  // normal component
+            double vt = vx;  // tangential component
+            // wallSign: +1 = bottom wall, -1 = top wall
+            double wallSign = (y + radius > dims.y) ? 1.0 : -1.0;
+            // Contact surface tangential vel = vt - wallSign*R*oZ
+            double vtContact = vt - wallSign * radius * oZ;
+            double sign = vtContact == 0 ? 0 : Math.signum(vtContact);
+            double vnOut = -EPS * vn;
+            double vtOut = vt - MU_C * (1 + EPS) * Math.abs(vn) * sign
+                               + GAMMA * radius * oZ * (-wallSign);
+            double oZOut = (1 - BETA) * oZ - (BETA / radius) * (vt - vtOut);
+            if (y - radius < 0) { vnOut = Math.abs(vnOut); y = radius; }
+            else                 { vnOut = -Math.abs(vnOut); y = dims.y - radius; }
+            vx = vtOut; vy = vnOut; oZ = oZOut;
+            hit = true;
         }
-        return false;
+
+        // Vertical cushion (left / right): normal = X, tangential = Y
+        if (x - radius < 0 || x + radius > dims.x) {
+            double vn = vx;
+            double vt = vy;
+            // wallSign: +1 = right wall, -1 = left wall
+            double wallSign = (x + radius > dims.x) ? 1.0 : -1.0;
+            // Contact surface tangential vel = vt + wallSign*R*oZ
+            double vtContact = vt + wallSign * radius * oZ;
+            double sign = vtContact == 0 ? 0 : Math.signum(vtContact);
+            double vnOut = -EPS * vn;
+            double vtOut = vt - MU_C * (1 + EPS) * Math.abs(vn) * sign
+                               + GAMMA * radius * oZ * wallSign;
+            double oZOut = (1 - BETA) * oZ - (BETA / radius) * (vt - vtOut);
+            if (x - radius < 0) { vnOut = Math.abs(vnOut); x = radius; }
+            else                 { vnOut = -Math.abs(vnOut); x = dims.x - radius; }
+            vx = vnOut; vy = vtOut; oZ = oZOut;
+            hit = true;
+        }
+
+        if (hit) {
+            vel = new Point2D.Double(vx, vy);
+            loc = new Point2D.Double(x, y);
+            omegaZ = oZ;
+            omegaRoll = 0.0; // ball slides anew after cushion contact
+        }
+        return hit;
     }
 
     public boolean ballCollision(Ball other) { return false; }
 
     /**
-     * Detects collision between two balls in the ball world.
+     * Mass-weighted elastic collision with side-spin throw effect.
+     * Mass is proportional to radius^3. Returns true if a collision occurred and physics were applied.
+     * The dvn <= 0 guard ensures the second back-call from UpdateCommand is a no-op.
      */
     public boolean ballCollision(Ball other, DispatchAdapter dad) {
-        double distance = Math.sqrt(Math.pow(this.loc.x - other.getLocation().getX(), 2)
-                + Math.pow(this.loc.y - other.getLocation().getY(), 2));
-        boolean collision = false;
-        if (distance <= this.radius + other.getRadius()) collision = true;
+        double dx = other.loc.x - loc.x;
+        double dy = other.loc.y - loc.y;
+        double dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > radius + other.radius || dist < 1e-6) return false;
 
-        if (collision) {
-            double this_vel_x = this.vel.getX();
-            double this_vel_y = this.vel.getY();
-            double other_vel_x = other.vel.getX();
-            double other_vel_y = other.vel.getY();
+        // Unit normal from this → other
+        double nx = dx / dist, ny = dy / dist;
+        // Relative velocity along normal (positive = approaching)
+        double dvn = (vel.x - other.vel.x) * nx + (vel.y - other.vel.y) * ny;
+        if (dvn <= 0) return false;
 
-            if (this.loc.x < other.getLocation().getX()) {
-                if (this_vel_x > 0) this_vel_x *= -1;
-                if (other_vel_x < 0) other_vel_x *= -1;
-            }
-            if (this.loc.x > other.getLocation().getX()) {
-                if (this_vel_x < 0) this_vel_x *= -1;
-                if (other_vel_x > 0) other_vel_x *= -1;
-            }
-            if (this.loc.y < other.getLocation().getY()) {
-                if (this_vel_y > 0) this_vel_y *= -1;
-                if (other_vel_y < 0) other_vel_y *= -1;
-            }
-            if (this.loc.y > other.getLocation().getY()) {
-                if (this_vel_y < 0) this_vel_y *= -1;
-                if (other_vel_y > 0) other_vel_y *= -1;
-            }
+        double mA = Math.pow(radius, 3);
+        double mB = Math.pow(other.radius, 3);
+        double mSum = mA + mB;
 
-            this.setVelocity(new Point2D.Double(this_vel_x, this_vel_y));
-            other.setVelocity(new Point2D.Double(other_vel_x, other_vel_y));
-        }
-        return collision;
+        // Normal impulse (coefficient of restitution = 0.95)
+        double e = 0.95;
+        double J = (1 + e) * mA * mB / mSum * dvn;
+        vel       = new Point2D.Double(vel.x       - J / mA * nx, vel.y       - J / mA * ny);
+        other.vel = new Point2D.Double(other.vel.x + J / mB * nx, other.vel.y + J / mB * ny);
+
+        // Throw effect from this ball's side spin onto other
+        final double MU_B = 0.04, ALPHA_B = 0.5;
+        double vNormal = J / mB; // speed other gained along n
+        double tx = -ny, ty = nx; // tangent direction
+        double vThrow = MU_B * vNormal - ALPHA_B * radius * omegaZ;
+        other.vel = new Point2D.Double(other.vel.x + vThrow * tx, other.vel.y + vThrow * ty);
+        // Reaction on this (Newton's 3rd)
+        vel = new Point2D.Double(vel.x - mB / mA * vThrow * tx, vel.y - mB / mA * vThrow * ty);
+
+        return true;
     }
 
     public void update(BallObservable obs, Object o) {

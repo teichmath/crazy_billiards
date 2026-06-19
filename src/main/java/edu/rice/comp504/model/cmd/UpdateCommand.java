@@ -131,7 +131,7 @@ otherloop:  for (Ball other : ball_group) {
                                 ball.getVelocity().getY() + bstr.getForceY()));
                         bstr.zeroForce();
                     }
-                    applyFriction(ball);
+                    applyPhysics(ball);
                     System.out.println("execute hello 14");
                     ball.getUpdateStrategy().updateState(ball);
                     updated[i] = true;
@@ -180,7 +180,7 @@ otherloop:  for (Ball other : ball_group) {
                                 ball.getVelocity().getY() + bstr.getForceY()));
                         bstr.zeroForce();
                     }
-                    applyFriction(ball);
+                    applyPhysics(ball);
                     ball.getUpdateStrategy().updateState(ball);
                     System.out.println("execute hello 18");
                 }
@@ -241,13 +241,61 @@ otherloop:  for (Ball other : ball_group) {
         }
     }
 
-    private void applyFriction(Ball ball) {
-        double ff = ball.getFrictionFactor();
-        if (ff < 1.0) {
-            ball.setVelocity(new Point2D.Double(
-                    ball.getVelocity().getX() * ff,
-                    ball.getVelocity().getY() * ff));
+    // Physics constants (game units: pixels, frames)
+    private static final double G_EFF  = 1.0;   // effective deceleration (px/frame²)
+    private static final double MU_K   = 0.3;   // kinetic (sliding) friction
+    private static final double MU_R   = 0.1;   // rolling friction
+    private static final double MU_S   = 0.05;  // side-spin friction
+
+    /**
+     * Applies sliding→rolling transition and side-spin decay.
+     * Only runs for balls that opted into friction (frictionFactor < 1.0).
+     */
+    private void applyPhysics(Ball ball) {
+        if (ball.getFrictionFactor() >= 1.0) return;
+
+        double vx = ball.getVelocity().getX();
+        double vy = ball.getVelocity().getY();
+        double speed = Math.sqrt(vx * vx + vy * vy);
+        double omegaRoll = ball.getOmegaRoll();
+        double omegaZ    = ball.getOmegaZ();
+        double R         = ball.getRadius();
+
+        if (speed > 0.01) {
+            double heading = Math.atan2(vy, vx);
+            double slip = speed - R * omegaRoll;
+
+            if (slip > 0.01) {
+                // Sliding: kinetic friction decelerates v, accelerates roll
+                double decel     = MU_K * G_EFF;
+                double alphaRoll = 5.0 * MU_K * G_EFF / (2.0 * R);
+                vx -= decel * Math.cos(heading);
+                vy -= decel * Math.sin(heading);
+                double newSpeed = Math.sqrt(vx * vx + vy * vy);
+                omegaRoll = Math.min(omegaRoll + alphaRoll, newSpeed / R);
+            } else {
+                // Pure rolling: rolling friction slows everything together
+                double decel = 5.0 / 7.0 * MU_R * G_EFF;
+                vx -= decel * Math.cos(heading);
+                vy -= decel * Math.sin(heading);
+                double newSpeed = Math.sqrt(vx * vx + vy * vy);
+                if (newSpeed < 0.05) { vx = 0; vy = 0; omegaRoll = 0; }
+                else                   omegaRoll = newSpeed / R;
+            }
+        } else {
+            vx = 0; vy = 0;
         }
+
+        // Side-spin decays independently (pivoting friction against cloth)
+        if (Math.abs(omegaZ) > 0.001) {
+            double alphaZ   = -Math.signum(omegaZ) * 5.0 * MU_S * G_EFF / (2.0 * R);
+            double nextOmegaZ = omegaZ + alphaZ;
+            omegaZ = (Math.signum(nextOmegaZ) != Math.signum(omegaZ)) ? 0.0 : nextOmegaZ;
+        }
+
+        ball.setVelocity(new Point2D.Double(vx, vy));
+        ball.setOmegaRoll(omegaRoll);
+        ball.setOmegaZ(omegaZ);
     }
 
     private void capSpeeds(LinkedList<Ball> balls) {

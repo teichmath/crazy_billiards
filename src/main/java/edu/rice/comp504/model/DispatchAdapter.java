@@ -281,12 +281,13 @@ public class DispatchAdapter extends BallObservable {
     }
 
     /**
-     * Apply an impulse at canvas position (x, y) in direction angle with the given strength.
-     * Only the ball whose area contains (x, y) is affected.
+     * Apply a cue impulse. spin is a normalised side-spin offset in [-1, 1]
+     * (negative = left English, positive = right English).
      */
-    public void applyImpulse(double x, double y, double angle, double strength) {
-        ImpulseCommand cmd = new ImpulseCommand(x, y, angle, strength);
-        System.out.println("impulse x=" + x + " y=" + y + " angle=" + angle + " strength=" + strength);
+    public void applyImpulse(double x, double y, double angle, double strength, double spin) {
+        ImpulseCommand cmd = new ImpulseCommand(x, y, angle, strength, spin);
+        System.out.println("impulse x=" + x + " y=" + y + " angle=" + angle
+                + " strength=" + strength + " spin=" + spin);
         for (BallObserver o : getObservers()) {
             try {
                 cmd.execute((Ball) o);
@@ -294,6 +295,10 @@ public class DispatchAdapter extends BallObservable {
                 Thread.currentThread().interrupt();
             }
         }
+    }
+
+    public void applyImpulse(double x, double y, double angle, double strength) {
+        applyImpulse(x, y, angle, strength, 0.0);
     }
 
     /**
@@ -340,7 +345,7 @@ public class DispatchAdapter extends BallObservable {
         String upName = uStrategy.getName();
         if (!upName.contains("wander") && !upName.contains("mowthelawn")
                 && !upName.contains("cornergravity") && !upName.contains("drag")) {
-            ball.setFrictionFactor(0.995);
+            ball.setFrictionFactor(0.999);
         }
         return ball;
     }

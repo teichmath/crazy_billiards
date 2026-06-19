@@ -99,7 +99,7 @@ public class BallWorldController {
         post("/impulse", (request, response) -> {
             String body = request.body();
             DispatchAdapter dis = getWorld(request);
-            double x = 0, y = 0, angle = 0, strength = 5;
+            double x = 0, y = 0, angle = 0, strength = 5, spin = 0;
             for (String pair : body.split("&")) {
                 String[] kv = pair.split("=");
                 if (kv.length != 2) continue;
@@ -108,9 +108,10 @@ public class BallWorldController {
                     case "y":        y        = Double.parseDouble(kv[1]); break;
                     case "angle":    angle    = Double.parseDouble(kv[1]); break;
                     case "strength": strength = Double.parseDouble(kv[1]); break;
+                    case "spin":     spin     = Double.parseDouble(kv[1]); break;
                 }
             }
-            dis.applyImpulse(x, y, angle, strength);
+            dis.applyImpulse(x, y, angle, strength, spin);
             return "{}";
         });
 

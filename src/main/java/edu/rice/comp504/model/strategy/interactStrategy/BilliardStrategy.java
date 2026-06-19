@@ -78,6 +78,19 @@ public class BilliardStrategy implements IInteractStrategy {
             }
         }
 
+        // Throw: src's side-spin deflects dest tangentially
+        final double MU_B = 0.04, ALPHA_B = 0.5;
+        double vThrow = MU_B * proj - ALPHA_B * src.getRadius() * src.getOmegaZ();
+        double tx = -ny, ty = nx; // tangent perpendicular to normal
+        if (dest.getInteractStrategy().getName().contains("billiard")) {
+            BilliardStrategy destStrat = (BilliardStrategy)
+                    my_int_unwrapper.getBaseInteractStrategy(dest, "billiard");
+            if (destStrat != null) destStrat.addForce(vThrow * tx, vThrow * ty);
+        } else {
+            dest.setVelocity(new Point2D.Double(
+                    dest.getVelocity().getX() + vThrow * tx,
+                    dest.getVelocity().getY() + vThrow * ty));
+        }
     }
 
 
