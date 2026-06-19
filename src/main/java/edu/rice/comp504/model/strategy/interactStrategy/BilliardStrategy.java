@@ -53,6 +53,12 @@ public class BilliardStrategy implements IInteractStrategy {
      */
     public void interact(Ball src, Ball dest) {
 
+        // For non-blob pairs, ballCollision() in Ball.java owns the mass-weighted elastic physics.
+        // Only run force-accumulation here when a blob is involved.
+        boolean srcBlob  = src.getInteractStrategy().getName().contains("blob");
+        boolean destBlob = dest.getInteractStrategy().getName().contains("blob");
+        if (!srcBlob && !destBlob) return;
+
         // Unit normal from src center toward dest center
         double nx = dest.getLocation().getX() - src.getLocation().getX();
         double ny = dest.getLocation().getY() - src.getLocation().getY();

@@ -67,9 +67,14 @@ otherloop:  for (Ball other : ball_group) {
                         other.ballCollision(context, dad);
                         System.out.println("execute hello 5");
 
-                        if (context.getInteractStrategy().getName().contains("billiard"))
+                        // Blobs rely on BilliardStrategy.interact() for their velocity update,
+                        // so restore pre-collision velocities only when a blob is involved.
+                        // For regular billiard balls, ballCollision() is the sole physics source.
+                        boolean ctxBlob = context.getInteractStrategy().getName().contains("blob");
+                        boolean othBlob = other.getInteractStrategy().getName().contains("blob");
+                        if ((ctxBlob || othBlob) && context.getInteractStrategy().getName().contains("billiard"))
                             context.setVelocity(record_context_vel);
-                        if (other.getInteractStrategy().getName().contains("billiard"))
+                        if ((ctxBlob || othBlob) && other.getInteractStrategy().getName().contains("billiard"))
                             other.setVelocity(record_other_vel);
                         System.out.println("execute hello 6");
 
