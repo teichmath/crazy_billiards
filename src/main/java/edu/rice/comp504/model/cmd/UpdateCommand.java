@@ -248,7 +248,9 @@ otherloop:  for (Ball other : ball_group) {
         // Rotate balls never develop a rolling state — constant direction changes
         // mean they always slide, so force MU_K (not MU_R) throughout.
         double frictionMult = upName.contains("drag") ? 6.0 : 1.0;
-        double G_EFF = cfg.gEff * frictionMult, MU_K = cfg.muK, MU_R = cfg.muR, MU_S = cfg.muS;
+        double G_EFF  = cfg.gEff * frictionMult;
+        double MU_K   = upName.contains("rotate") ? 0.5 : cfg.muK;
+        double MU_R   = cfg.muR, MU_S = cfg.muS;
 
         double vx = ball.getVelocity().getX();
         double vy = ball.getVelocity().getY();

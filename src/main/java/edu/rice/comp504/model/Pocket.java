@@ -22,7 +22,7 @@ public class Pocket {
 
     public void startFlash(String ballColor) {
         flashColor = averageColor(ballColor);
-        flashFrames = 1;
+        flashFrames = 15;
     }
 
     public void tickFlash() {

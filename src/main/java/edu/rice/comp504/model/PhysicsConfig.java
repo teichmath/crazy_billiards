@@ -12,28 +12,26 @@ public class PhysicsConfig {
     private PhysicsConfig() {}
 
     // --- Cloth friction (UpdateCommand) ---
-    public volatile double gEff    = 1.0;   // deceleration scale (px/frame²)
-    public volatile double muK     = 0.3;   // kinetic (sliding) friction
-    public volatile double muR     = 0.1;   // rolling friction
-    public volatile double muS     = 0.05;  // side-spin decay
+    public volatile double gEff    = 0.3;   // deceleration scale (px/frame²)
+    public volatile double muK     = 0.2;   // kinetic (sliding) friction
+    public volatile double muR     = 0.07;  // rolling friction
+    public volatile double muS     = 0.07;  // side-spin decay
 
     // --- Cushion / rail (Ball.wallCollision) ---
-    public volatile double eps     = 0.7;   // rail restitution
-    public volatile double muC     = 0.1;   // rail friction
+    public volatile double eps     = 0.65;  // rail restitution
+    public volatile double muC     = 0.12;  // rail friction
     public volatile double gamma   = 0.15;  // spin → velocity transfer at rail
-    public volatile double beta    = 0.5;   // spin drain at rail
+    public volatile double beta    = 0.35;  // spin drain at rail
 
     // --- Ball-on-ball (Ball.ballCollision + BilliardStrategy) ---
-    public volatile double eBall   = 0.95;  // ball-ball restitution
-    public volatile double muB     = 0.04;  // throw friction
-    public volatile double alphaB  = 0.5;   // spin throw efficiency
+    public volatile double eBall   = 0.99;  // ball-ball restitution
+    public volatile double muB     = 0.065; // throw friction
+    public volatile double alphaB  = 0.55;  // spin throw efficiency
 
     // --- Cue (ImpulseCommand) ---
-    public volatile double cueScale = 5.0;  // speed multiplier for cue strength
+    public volatile double cueScale = 20.0; // speed multiplier for cue strength
 
     // --- Timestep scale ---
-    // Reference tick was 100 ms; client now polls at 20 ms (50 fps).
-    // All per-frame position and friction deltas are multiplied by this so
-    // simulation speed stays the same regardless of poll rate.
-    public static final double DT_SCALE = 20.0 / 100.0;
+    // Reference tick was 100 ms; client polls at 30 fps ≈ 33.3 ms.
+    public static final double DT_SCALE = 1.0 / 3.0;
 }
