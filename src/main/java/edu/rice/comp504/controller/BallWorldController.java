@@ -87,7 +87,9 @@ public class BallWorldController {
 
         get("/update", (request, response) -> {
             DispatchAdapter dis = getWorld(request);
-            dis.updateBallWorld();
+            synchronized (dis) {
+                dis.updateBallWorld();
+            }
             return gson.toJson(dis);
         });
 
@@ -131,6 +133,25 @@ public class BallWorldController {
             }
             boolean added = dis.addPocket(x, y, radius);
             return "{\"added\":" + added + "}";
+        });
+
+        post("/hold", (request, response) -> {
+            DispatchAdapter dis = getWorld(request);
+            boolean active = false;
+            double x = 0, y = 0;
+            for (String pair : request.body().split("&")) {
+                String[] kv = pair.split("=");
+                if (kv.length != 2) continue;
+                try {
+                    switch (kv[0]) {
+                        case "active": active = Boolean.parseBoolean(kv[1]); break;
+                        case "x":      x = Double.parseDouble(kv[1]); break;
+                        case "y":      y = Double.parseDouble(kv[1]); break;
+                    }
+                } catch (NumberFormatException ignored) {}
+            }
+            synchronized (dis) { dis.setHold(active, x, y); }
+            return "{}";
         });
 
         post("/config", (request, response) -> {

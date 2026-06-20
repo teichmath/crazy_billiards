@@ -36,15 +36,18 @@ public class InteractStrategyFactory {
         IInteractStrategy my_strategy;
         LinkedList<IInteractStrategy> new_strategies = new LinkedList<>();
 
-        if(word.contains("billiard")) new_strategies.add(new BilliardStrategy());
-        if(word.contains("smasher")) new_strategies.add(new SmasherStrategy());
-        if(word.contains("splitter")) new_strategies.add(new SplitterStrategy());
-        if(word.contains("blob")) new_strategies.add(new BlobStrategy());
-        if(word.contains("swapper")) new_strategies.add(SwapperStrategy.makeStrategy());
+        // BilliardStrategy is always the physics base — every ball gets it unless
+        // the explicit null-interact strategy is requested.
+        if (!word.contains("null ")) new_strategies.add(new BilliardStrategy());
+
+        if(word.contains("smasher"))   new_strategies.add(new SmasherStrategy());
+        if(word.contains("splitter"))  new_strategies.add(new SplitterStrategy());
+        if(word.contains("blob"))      new_strategies.add(new BlobStrategy());
+        if(word.contains("swapper"))   new_strategies.add(SwapperStrategy.makeStrategy());
         if(word.contains("nullifier")) new_strategies.add(NullifierStrategy.makeStrategy());
-        if(word.contains("leader")) new_strategies.add(LeaderStrategy.makeStrategy());
-        if(word.contains("repel")) new_strategies.add(RepelStrategy.makeStrategy());
-        if(word.contains("null ")) new_strategies.add(NullInteractStrategy.makeStrategy());
+        if(word.contains("leader"))    new_strategies.add(LeaderStrategy.makeStrategy());
+        if(word.contains("repel"))     new_strategies.add(RepelStrategy.makeStrategy());
+        if(word.contains("null "))     new_strategies.add(NullInteractStrategy.makeStrategy());
         if(new_strategies.size() == 0) new_strategies.add(NullInteractStrategy.makeStrategy());
 
 

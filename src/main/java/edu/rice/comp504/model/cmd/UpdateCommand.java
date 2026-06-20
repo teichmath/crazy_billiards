@@ -243,12 +243,17 @@ otherloop:  for (Ball other : ball_group) {
         if (ball.getFrictionFactor() >= 1.0) return;
 
         PhysicsConfig cfg = PhysicsConfig.get();
-        double G_EFF = cfg.gEff, MU_K = cfg.muK, MU_R = cfg.muR, MU_S = cfg.muS;
+        String upName = ball.getUpdateStrategy().getName();
+        // Drag balls use cloth friction but at 6× the normal rate.
+        // Rotate balls never develop a rolling state — constant direction changes
+        // mean they always slide, so force MU_K (not MU_R) throughout.
+        double frictionMult = upName.contains("drag") ? 6.0 : 1.0;
+        double G_EFF = cfg.gEff * frictionMult, MU_K = cfg.muK, MU_R = cfg.muR, MU_S = cfg.muS;
 
         double vx = ball.getVelocity().getX();
         double vy = ball.getVelocity().getY();
         double speed = Math.sqrt(vx * vx + vy * vy);
-        double omegaRoll = ball.getOmegaRoll();
+        double omegaRoll = upName.contains("rotate") ? 0.0 : ball.getOmegaRoll();
         double omegaZ    = ball.getOmegaZ();
         double R         = ball.getRadius();
 

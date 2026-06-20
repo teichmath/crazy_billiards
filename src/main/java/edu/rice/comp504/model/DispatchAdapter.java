@@ -30,6 +30,17 @@ public class DispatchAdapter extends BallObservable {
     public int frameCount;
     private LinkedList<Pocket> pockets = new LinkedList<>();
 
+    // Stop-tool hold state — set by /hold endpoint, applied each updateBallWorld tick.
+    private volatile boolean holdActive = false;
+    private volatile double  holdX = 0, holdY = 0;
+    private static final double HOLD_RADIUS = 28.0; // px, matches client octagon size
+
+    public void setHold(boolean active, double x, double y) {
+        holdActive = active;
+        holdX = x;
+        holdY = y;
+    }
+
     /**
      * Constructor
      */
@@ -91,6 +102,20 @@ public class DispatchAdapter extends BallObservable {
             }
         }
         for (BallObserver o : toRemove) deleteObserver(o);
+
+        // Apply stop-tool hold: zero velocity of any ball overlapping the tool.
+        if (holdActive) {
+            for (BallObserver o : getObservers()) {
+                Ball b = (Ball) o;
+                double dx = b.getLocation().getX() - holdX;
+                double dy = b.getLocation().getY() - holdY;
+                if (Math.sqrt(dx * dx + dy * dy) <= HOLD_RADIUS + b.getRadius()) {
+                    b.setVelocity(new Point2D.Double(0, 0));
+                    b.setOmegaRoll(0);
+                    b.setOmegaZ(0);
+                }
+            }
+        }
     }
 
     /**
@@ -339,7 +364,7 @@ public class DispatchAdapter extends BallObservable {
                 color, uStrategy, iStrategy);
         String upName = uStrategy.getName();
         if (!upName.contains("wander") && !upName.contains("mowthelawn")
-                && !upName.contains("cornergravity") && !upName.contains("drag")) {
+                && !upName.contains("cornergravity")) {
             ball.setFrictionFactor(0.999);
         }
         return ball;
