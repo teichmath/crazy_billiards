@@ -215,8 +215,8 @@ otherloop:  for (Ball other : ball_group) {
                     double bi_push = bi_blocked ? 0 : (bj_blocked ? overlap : half);
                     double bj_push = bj_blocked ? 0 : (bi_blocked ? overlap : half);
 
-                    if (bi_push > 0) bi.nextLocation(nx * bi_push, ny * bi_push);
-                    if (bj_push > 0) bj.nextLocation(-nx * bj_push, -ny * bj_push);
+                    if (bi_push > 0) bi.nudge(nx * bi_push, ny * bi_push);
+                    if (bj_push > 0) bj.nudge(-nx * bj_push, -ny * bj_push);
                 }
             }
 
@@ -252,21 +252,23 @@ otherloop:  for (Ball other : ball_group) {
         double omegaZ    = ball.getOmegaZ();
         double R         = ball.getRadius();
 
+        final double DT = PhysicsConfig.DT_SCALE;
+
         if (speed > 0.01) {
             double heading = Math.atan2(vy, vx);
             double slip = speed - R * omegaRoll;
 
             if (slip > 0.01) {
                 // Sliding: kinetic friction decelerates v, accelerates roll
-                double decel     = MU_K * G_EFF;
-                double alphaRoll = 5.0 * MU_K * G_EFF / (2.0 * R);
+                double decel     = MU_K * G_EFF * DT;
+                double alphaRoll = 5.0 * MU_K * G_EFF / (2.0 * R) * DT;
                 vx -= decel * Math.cos(heading);
                 vy -= decel * Math.sin(heading);
                 double newSpeed = Math.sqrt(vx * vx + vy * vy);
                 omegaRoll = Math.min(omegaRoll + alphaRoll, newSpeed / R);
             } else {
                 // Pure rolling: rolling friction slows everything together
-                double decel = 5.0 / 7.0 * MU_R * G_EFF;
+                double decel = 5.0 / 7.0 * MU_R * G_EFF * DT;
                 vx -= decel * Math.cos(heading);
                 vy -= decel * Math.sin(heading);
                 double newSpeed = Math.sqrt(vx * vx + vy * vy);
@@ -279,7 +281,7 @@ otherloop:  for (Ball other : ball_group) {
 
         // Side-spin decays independently (pivoting friction against cloth)
         if (Math.abs(omegaZ) > 0.001) {
-            double alphaZ     = -Math.signum(omegaZ) * 5.0 * MU_S * G_EFF / (2.0 * R);
+            double alphaZ     = -Math.signum(omegaZ) * 5.0 * MU_S * G_EFF / (2.0 * R) * DT;
             double nextOmegaZ = omegaZ + alphaZ;
             omegaZ = (Math.signum(nextOmegaZ) != Math.signum(omegaZ)) ? 0.0 : nextOmegaZ;
         }

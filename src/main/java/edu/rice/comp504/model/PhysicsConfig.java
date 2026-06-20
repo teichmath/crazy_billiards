@@ -30,4 +30,10 @@ public class PhysicsConfig {
 
     // --- Cue (ImpulseCommand) ---
     public volatile double cueScale = 5.0;  // speed multiplier for cue strength
+
+    // --- Timestep scale ---
+    // Reference tick was 100 ms; client now polls at 20 ms (50 fps).
+    // All per-frame position and friction deltas are multiplied by this so
+    // simulation speed stays the same regardless of poll rate.
+    public static final double DT_SCALE = 20.0 / 100.0;
 }

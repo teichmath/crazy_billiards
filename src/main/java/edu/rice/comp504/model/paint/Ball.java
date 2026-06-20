@@ -49,7 +49,13 @@ public class Ball implements BallObserver {
     public void setColor(String color) { this.color = color; }
 
     public void nextLocation(double velX, double velY) {
-        this.setLocation(new Point2D.Double(this.loc.getX() + velX, this.loc.getY() + velY));
+        double s = PhysicsConfig.DT_SCALE;
+        this.setLocation(new Point2D.Double(this.loc.getX() + velX * s, this.loc.getY() + velY * s));
+    }
+
+    // Raw position correction — no dt scaling (used by penetration resolver).
+    public void nudge(double dx, double dy) {
+        this.setLocation(new Point2D.Double(this.loc.getX() + dx, this.loc.getY() + dy));
     }
 
     public Point2D.Double getVelocity() { return this.vel; }
