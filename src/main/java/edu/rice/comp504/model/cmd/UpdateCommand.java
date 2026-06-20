@@ -217,19 +217,6 @@ otherloop:  for (Ball other : ball_group) {
 
                     if (bi_push > 0) bi.nextLocation(nx * bi_push, ny * bi_push);
                     if (bj_push > 0) bj.nextLocation(-nx * bj_push, -ny * bj_push);
-
-                    if (bi_push > 0) {
-                        double vi_n = bi.getVelocity().getX() * nx + bi.getVelocity().getY() * ny;
-                        if (vi_n < 0) bi.setVelocity(new Point2D.Double(
-                                bi.getVelocity().getX() - nx * vi_n,
-                                bi.getVelocity().getY() - ny * vi_n));
-                    }
-                    if (bj_push > 0) {
-                        double vj_n = bj.getVelocity().getX() * nx + bj.getVelocity().getY() * ny;
-                        if (vj_n > 0) bj.setVelocity(new Point2D.Double(
-                                bj.getVelocity().getX() - nx * vj_n,
-                                bj.getVelocity().getY() - ny * vj_n));
-                    }
                 }
             }
 
