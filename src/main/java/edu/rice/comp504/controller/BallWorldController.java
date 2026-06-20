@@ -87,7 +87,14 @@ public class BallWorldController {
 
         get("/update", (request, response) -> {
             DispatchAdapter dis = getWorld(request);
+            boolean hold = "true".equals(request.queryParams("hold"));
+            double holdX = 0, holdY = 0;
+            if (hold) {
+                try { holdX = Double.parseDouble(request.queryParams("holdX")); } catch (Exception ignored) {}
+                try { holdY = Double.parseDouble(request.queryParams("holdY")); } catch (Exception ignored) {}
+            }
             synchronized (dis) {
+                dis.setHold(hold, holdX, holdY);
                 dis.updateBallWorld();
             }
             return gson.toJson(dis);
