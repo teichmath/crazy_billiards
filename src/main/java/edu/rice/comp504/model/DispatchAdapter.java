@@ -275,7 +275,7 @@ public class DispatchAdapter extends BallObservable {
                 continue;
             }
             if (!start_record) continue;
-            if (word.equals(" ") || (word.equals("updatestrategies"))) {
+            if (word.equals(" ") || word.equals("") || (word.equals("updatestrategies"))) {
                 if(interacters.size() == 0) interacters.add(my_intfact.makeStrategy("null"));
                 break;
             }
