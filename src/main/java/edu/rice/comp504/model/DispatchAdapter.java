@@ -13,6 +13,9 @@ import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 
 
@@ -30,15 +33,35 @@ public class DispatchAdapter extends BallObservable {
     public int frameCount;
     private LinkedList<Pocket> pockets = new LinkedList<>();
 
-    // Stop-tool hold state — set by /hold endpoint, applied each updateBallWorld tick.
-    private volatile boolean holdActive = false;
-    private volatile double  holdX = 0, holdY = 0;
+    // Stop-tool hold state — set by /update endpoint, applied each physics tick.
+    private boolean holdActive = false;
+    private double  holdX = 0, holdY = 0;
     private static final double HOLD_RADIUS = 28.0; // px, matches client octagon size
 
-    public void setHold(boolean active, double x, double y) {
+    private ScheduledExecutorService physicsTimer;
+
+    public synchronized void setHold(boolean active, double x, double y) {
         holdActive = active;
         holdX = x;
         holdY = y;
+    }
+
+    public void startPhysicsClock() {
+        physicsTimer = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "physics-clock");
+            t.setDaemon(true);
+            return t;
+        });
+        physicsTimer.scheduleAtFixedRate(() -> {
+            synchronized (DispatchAdapter.this) { updateBallWorld(); }
+        }, 0, 33, TimeUnit.MILLISECONDS);
+    }
+
+    public void stopPhysicsClock() {
+        if (physicsTimer != null) {
+            physicsTimer.shutdownNow();
+            physicsTimer = null;
+        }
     }
 
     /**

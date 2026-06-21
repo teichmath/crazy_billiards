@@ -28,7 +28,11 @@ public class BallWorldController {
         String sid = request.queryParams("sid");
         if (sid == null || sid.isEmpty()) sid = "default";
         lastSeen.put(sid, System.currentTimeMillis());
-        return worlds.computeIfAbsent(sid, k -> new DispatchAdapter());
+        return worlds.computeIfAbsent(sid, k -> {
+            DispatchAdapter d = new DispatchAdapter();
+            d.startPhysicsClock();
+            return d;
+        });
     }
 
     private static void startSessionReaper() {
@@ -41,7 +45,8 @@ public class BallWorldController {
             long cutoff = System.currentTimeMillis() - SESSION_TIMEOUT_MS;
             lastSeen.forEach((sid, ts) -> {
                 if (ts < cutoff) {
-                    worlds.remove(sid);
+                    DispatchAdapter d = worlds.remove(sid);
+                    if (d != null) d.stopPhysicsClock();
                     lastSeen.remove(sid);
                 }
             });
@@ -75,13 +80,15 @@ public class BallWorldController {
             String body = request.body();
             DispatchAdapter dis = getWorld(request);
             System.out.println("trying to load");
-            Ball b = dis.loadBall(body);
-            return gson.toJson(b);
+            synchronized (dis) {
+                Ball b = dis.loadBall(body);
+                return gson.toJson(b);
+            }
         });
 
         post("/switch", (request, response) -> {
             DispatchAdapter dis = getWorld(request);
-            dis.switchStrategy(request.body());
+            synchronized (dis) { dis.switchStrategy(request.body()); }
             return gson.toJson(dis);
         });
 
@@ -95,14 +102,13 @@ public class BallWorldController {
             }
             synchronized (dis) {
                 dis.setHold(hold, holdX, holdY);
-                dis.updateBallWorld();
+                return gson.toJson(dis);
             }
-            return gson.toJson(dis);
         });
 
         get("/clear", (request, response) -> {
             DispatchAdapter dis = getWorld(request);
-            dis.deleteObservers();
+            synchronized (dis) { dis.deleteObservers(); }
             return gson.toJson(dis);
         });
 
@@ -120,7 +126,7 @@ public class BallWorldController {
                     case "strength": strength = Double.parseDouble(kv[1]); break;
                 }
             }
-            dis.applyImpulse(x, y, angle, strength);
+            synchronized (dis) { dis.applyImpulse(x, y, angle, strength); }
             return "{}";
         });
 
