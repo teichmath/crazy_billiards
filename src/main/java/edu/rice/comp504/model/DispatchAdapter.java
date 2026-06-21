@@ -38,7 +38,7 @@ public class DispatchAdapter extends BallObservable {
     private double  holdX = 0, holdY = 0;
     private static final double HOLD_RADIUS = 28.0; // px, matches client octagon size
 
-    private ScheduledExecutorService physicsTimer;
+    private transient ScheduledExecutorService physicsTimer;
 
     public synchronized void setHold(boolean active, double x, double y) {
         holdActive = active;
