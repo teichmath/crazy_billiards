@@ -33,14 +33,14 @@ public class DispatchAdapter extends BallObservable {
     public int frameCount;
     private LinkedList<Pocket> pockets = new LinkedList<>();
 
-    // Stop-tool hold state — set by /update endpoint, applied each physics tick.
-    private boolean holdActive = false;
-    private double  holdX = 0, holdY = 0;
+    // Stop-tool hold state — volatile so the physics thread sees updates from HTTP threads immediately.
+    private volatile boolean holdActive = false;
+    private volatile double  holdX = 0, holdY = 0;
     private static final double HOLD_RADIUS = 28.0; // px, matches client octagon size
 
     private transient ScheduledExecutorService physicsTimer;
 
-    public synchronized void setHold(boolean active, double x, double y) {
+    public void setHold(boolean active, double x, double y) {
         holdActive = active;
         holdX = x;
         holdY = y;
@@ -52,9 +52,8 @@ public class DispatchAdapter extends BallObservable {
             t.setDaemon(true);
             return t;
         });
-        physicsTimer.scheduleAtFixedRate(() -> {
-            synchronized (DispatchAdapter.this) { updateBallWorld(); }
-        }, 0, 33, TimeUnit.MILLISECONDS);
+        // Physics runs freely — no lock held during tick, so /update reads are never blocked.
+        physicsTimer.scheduleAtFixedRate(this::updateBallWorld, 0, 33, TimeUnit.MILLISECONDS);
     }
 
     public void stopPhysicsClock() {
